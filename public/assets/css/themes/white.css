@@ -1,0 +1,38 @@
+.page-sidebar {
+  background-color: #fafafa; }
+  .page-sidebar .admin-block .admin-info {
+    color: inherit; }
+    .page-sidebar .admin-block .admin-info small {
+      color: inherit; }
+
+.side-menu .heading {
+  color: inherit; }
+
+.side-menu > li a {
+  color: inherit; }
+  .side-menu > li a:hover, .side-menu > li a:focus {
+    color: #fff;
+    background-color: #3498db; }
+
+.side-menu > li.active {
+  background-color: #ededed; }
+  .side-menu > li.active > a, .side-menu > li.active > a:hover, .side-menu > li.active > a:focus {
+    color: #fff;
+    background-color: #3498db; }
+
+.side-menu li a.active {
+  color: #3498db; }
+  .side-menu li a.active:hover {
+    color: #fff; }
+
+.sidebar-mini .side-menu > li:hover > a {
+  background-color: #3498db;
+  color: #fff; }
+
+.sidebar-mini .side-menu > li:hover .nav-2-level {
+  background-color: #fafafa; }
+
+.header .page-brand {
+  color: inherit;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd; }

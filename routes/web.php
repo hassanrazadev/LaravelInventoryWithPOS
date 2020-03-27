@@ -13,6 +13,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::group(['middleware' => ['user']], function () {
+    Route::get('/', 'HomeController@index')->name('dashboard');
+
+    // categories
+    Route::resource('categories', 'CategoryController');
+    Route::prefix('categories')->group(function (){
+        Route::get('/delete-or-restore/{category}', 'CategoryController@deleteOrRestore')->name('categories.delete');
+    });
 });
+
+
+Route::view('user/login', 'user.login')->name('user.login');
+Route::post('user/do-login', 'UserController@doLogin')->name('user.doLogin');

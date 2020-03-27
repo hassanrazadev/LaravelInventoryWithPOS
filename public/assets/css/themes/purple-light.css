@@ -1,0 +1,55 @@
+.page-sidebar {
+  background-color: #fafafa; }
+  .page-sidebar .admin-block .admin-info {
+    color: inherit; }
+    .page-sidebar .admin-block .admin-info small {
+      color: inherit; }
+
+.side-menu .heading {
+  color: inherit; }
+
+.side-menu > li a {
+  color: inherit; }
+  .side-menu > li a:hover, .side-menu > li a:focus {
+    color: #fff;
+    background-color: #3498db; }
+
+.side-menu > li.active {
+  background-color: #ededed; }
+  .side-menu > li.active > a, .side-menu > li.active > a:hover, .side-menu > li.active > a:focus {
+    color: #fff;
+    background-color: #3498db; }
+
+.side-menu li a.active {
+  color: #3498db; }
+  .side-menu li a.active:hover {
+    color: #fff; }
+
+.sidebar-mini .side-menu > li:hover > a {
+  background-color: #3498db;
+  color: #fff; }
+
+.sidebar-mini .side-menu > li:hover .nav-2-level {
+  background-color: #fafafa; }
+
+.header {
+  background-color: #7E57C2; }
+  .header .page-brand {
+    color: #fff;
+    background-color: #643da9; }
+  .header .navbar-toolbar > li > a, .header .navbar-toolbar > li > a:hover, .header .navbar-toolbar > li > a:focus {
+    color: #fff; }
+  .header .navbar-toolbar .navbar-search .form-control {
+    background-color: transparent; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::-webkit-input-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::-moz-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control:-ms-input-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::-ms-input-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::placeholder {
+      color: #fff; }
+  .header .navbar-toolbar .navbar-search .search-icon {
+    color: #fff; }

@@ -1,0 +1,53 @@
+.page-sidebar {
+  background-color: #253544; }
+  .page-sidebar .admin-block .admin-info {
+    color: #fff; }
+    .page-sidebar .admin-block .admin-info small {
+      color: #b4bcc8; }
+
+.side-menu .heading {
+  color: rgba(255, 255, 255, 0.4); }
+
+.side-menu > li a {
+  color: #b4bcc8; }
+  .side-menu > li a:hover, .side-menu > li a:focus {
+    color: #fff;
+    background-color: #3498db; }
+
+.side-menu > li.active {
+  background-color: #2e4255; }
+  .side-menu > li.active > a, .side-menu > li.active > a:hover, .side-menu > li.active > a:focus {
+    color: #fff;
+    background-color: #3498db; }
+
+.side-menu li a.active {
+  color: #fff; }
+
+.sidebar-mini .side-menu > li:hover > a {
+  background-color: #3498db;
+  color: #fff; }
+
+.sidebar-mini .side-menu > li:hover .nav-2-level {
+  background-color: #253544; }
+
+.header {
+  background-color: #7E57C2; }
+  .header .page-brand {
+    color: #fff;
+    background-color: #643da9; }
+  .header .navbar-toolbar > li > a, .header .navbar-toolbar > li > a:hover, .header .navbar-toolbar > li > a:focus {
+    color: #fff; }
+  .header .navbar-toolbar .navbar-search .form-control {
+    background-color: transparent; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::-webkit-input-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::-moz-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control:-ms-input-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::-ms-input-placeholder {
+      color: #fff; }
+    .header .navbar-toolbar .navbar-search .form-control, .header .navbar-toolbar .navbar-search .form-control::placeholder {
+      color: #fff; }
+  .header .navbar-toolbar .navbar-search .search-icon {
+    color: #fff; }
