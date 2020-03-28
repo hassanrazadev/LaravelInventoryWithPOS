@@ -13,7 +13,7 @@ class AppUtils {
      */
     public static function inputFieldError($errors, $fieldName){
         if ($errors->has($fieldName)){
-            return 'border-danger';
+            return 'is-invalid';
         }
         return '';
     }

@@ -14,34 +14,38 @@
                 </a>
             </li>
             <li class="heading">FEATURES</li>
-            <li class="{{$activeNav == 'categories' ? 'active' : ''}}">
-                <a href="javascript:;"><i class="sidebar-item-icon fa fa-tags"></i>
-                    <span class="nav-label">Categories</span><i class="fa fa-angle-left arrow"></i></a>
-                <ul class="nav-2-level collapse">
-                    @can('create category')
+            @canany(['create category', 'read category'])
+                <li class="{{$activeNav == 'categories' ? 'active' : ''}}">
+                    <a href="javascript:;"><i class="sidebar-item-icon fa fa-tags"></i>
+                        <span class="nav-label">Categories</span><i class="fa fa-angle-left arrow"></i></a>
+                    <ul class="nav-2-level collapse">
+                        @can('create category')
+                            <li>
+                                <a class="{{url()->current() == route('categories.create') ? 'active' : ''}}" href="{{route('categories.create')}}">Create New</a>
+                            </li>
+                        @endcan
+                        @can('read category')
+                            <li>
+                                <a class="{{url()->current() == route('categories.index') ? 'active' : ''}}" href="{{route('categories.index')}}">Manage Categories</a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+            @canany(['create product', 'read product'])
+                <li class="{{$activeNav == 'products' ? 'active' : ''}}">
+                    <a href="javascript:;"><i class="sidebar-item-icon fa fa-cubes"></i>
+                        <span class="nav-label">Products</span><i class="fa fa-angle-left arrow"></i></a>
+                    <ul class="nav-2-level collapse">
                         <li>
-                            <a class="{{url()->current() == route('categories.create') ? 'active' : ''}}" href="{{route('categories.create')}}">Create Category</a>
+                            <a class="{{url()->current() == route('products.create') ? 'active' : ''}}" href="{{route('products.create')}}">Create New</a>
                         </li>
-                    @endcan
-                    @can('read category')
                         <li>
-                            <a class="{{url()->current() == route('categories.index') ? 'active' : ''}}" href="{{route('categories.index')}}">Manage Categories</a>
+                            <a class="{{url()->current() == route('products.index') ? 'active' : ''}}" href="{{route('products.index')}}">Manage Products</a>
                         </li>
-                    @endcan
-                </ul>
-            </li>
-            <li>
-                <a href="javascript:;"><i class="sidebar-item-icon fa fa-cubes"></i>
-                    <span class="nav-label">Products</span><i class="fa fa-angle-left arrow"></i></a>
-                <ul class="nav-2-level collapse">
-                    <li>
-                        <a href="#">Add Product</a>
-                    </li>
-                    <li>
-                        <a href="#">Manage Products</a>
-                    </li>
-                </ul>
-            </li>
+                    </ul>
+                </li>
+            @endcanany
             <li>
                 <a href="javascript:;"><i class="sidebar-item-icon fa fa-users"></i>
                     <span class="nav-label">Users</span><i class="fa fa-angle-left arrow"></i></a>

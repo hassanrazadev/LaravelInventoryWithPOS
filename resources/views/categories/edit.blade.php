@@ -49,5 +49,6 @@
             },
         }
     </script>
+    <script src="{{asset('assets/js/image-cropper-modal.js')}}" type="text/javascript"></script>
     <script src="{{asset('assets/js/categories.js')}}" type="text/javascript"></script>
 @endsection

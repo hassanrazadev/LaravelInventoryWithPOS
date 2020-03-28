@@ -55,7 +55,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label"></label>
                             <div class="col-sm-9">
-                                <button type="submit" class="btn btn-primary btn-block">{{isset($category) ? 'Update' : 'Add'}} Category</button>
+                                <button type="submit" class="btn btn-primary btn-block">{{isset($category) ? 'Update' : 'Create'}} Category</button>
                             </div>
                         </div>
                     </form>

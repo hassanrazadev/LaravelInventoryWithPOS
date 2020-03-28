@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoryFormRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class CategoryController extends Controller{
@@ -90,7 +89,6 @@ class CategoryController extends Controller{
         if ($data['status']){
             return redirect()->route('categories.index')->with($data);
         }
-
         return redirect()->back()->withInput();
     }
 

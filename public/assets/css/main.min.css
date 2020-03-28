@@ -2279,6 +2279,10 @@ body.fullscreen-mode {
     color: #e74c3c
 }
 
+.has-error .select2-selection{
+    border-color: #e74c3c !important;
+}
+
 .help-block.error {
     color: #e74c3c
 }
@@ -4644,7 +4648,7 @@ img.img-50{
 
 /* Switch 4 Specific Style End */
 
-.form-group.required label::after{
+.form-group.required label:first-child::after{
     content: '*';
     color: #dc3545;
 }

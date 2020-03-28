@@ -10,7 +10,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="container-fluid">
+                <div class="container-fluid p-0">
                     <img src="" class="img-fluid" id="croppedImage" alt="">
                 </div>
             </div>
