@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Utils\AppUtils;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -44,10 +46,17 @@ class Product extends Model{
     }
 
     /**
-     * @return BelongsTo
+     * @return BelongsToMany
      */
-    public function supplier(){
-        return $this->belongsTo(Supplier::class);
+    public function suppliers(){
+        return $this->belongsToMany(Supplier::class);
+    }
+
+    /**
+     * @return BelongsToMany
+     */
+    public function purchases(){
+        return $this->belongsToMany(Purchase::class)->withPivot('quantity', 'unit_price', 'sub_total');
     }
 
     /**
@@ -215,7 +224,7 @@ class Product extends Model{
             }else{
                 try {
                     $product->delete();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                 }
             }
             $data['status'] = true;

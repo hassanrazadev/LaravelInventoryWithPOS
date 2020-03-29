@@ -27,6 +27,12 @@ Route::group(['middleware' => ['user']], function () {
     Route::prefix('products')->group(function (){
         Route::get('/delete-or-restore/{product}', 'ProductController@deleteOrRestore')->name('products.delete');
     });
+
+    // purchases
+    Route::resource('purchases', 'PurchaseController');
+    Route::prefix('purchases')->group(function (){
+        Route::get('/delete-or-restore/{purchase}', 'PurchaseController@deleteOrRestore')->name('purchases.delete');
+    });
 });
 
 

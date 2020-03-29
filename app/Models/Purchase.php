@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Purchase extends Model{
 
     protected $fillable = [
-        'product_id', 'created_by', 'updated_by', 'supplier_id', 'unit_price', 'quantity', 'total'
+        'created_by', 'updated_by', 'supplier_id', 'total'
     ];
 
     // ===================== ORM Definition START ===================== //
@@ -21,10 +23,10 @@ class Purchase extends Model{
     }
 
     /**
-     * @return BelongsTo
+     * @return BelongsToMany
      */
     public function products(){
-        return $this->belongsTo(Product::class);
+        return $this->belongsToMany(Product::class)->withPivot('quantity', 'unit_price', 'sub_total');
     }
 
     /**
@@ -40,6 +42,7 @@ class Purchase extends Model{
     public function updatedBy(){
         return $this->belongsTo(User::class, 'updated_by');
     }
-
     // ===================== ORM Definition END ===================== //
+
+
 }

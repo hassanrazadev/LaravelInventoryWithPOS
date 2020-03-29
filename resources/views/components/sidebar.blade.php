@@ -46,6 +46,20 @@
                     </ul>
                 </li>
             @endcanany
+            @canany(['create purchase', 'read purchase'])
+                <li class="{{$activeNav == 'purchases' ? 'active' : ''}}">
+                    <a href="javascript:;"><i class="sidebar-item-icon fa fa-briefcase"></i>
+                        <span class="nav-label">Purchases</span><i class="fa fa-angle-left arrow"></i></a>
+                    <ul class="nav-2-level collapse">
+                        <li>
+                            <a class="{{url()->current() == route('purchases.create') ? 'active' : ''}}" href="{{route('purchases.create')}}">Create New</a>
+                        </li>
+                        <li>
+                            <a class="{{url()->current() == route('purchases.index') ? 'active' : ''}}" href="{{route('purchases.index')}}">Manage Purchases</a>
+                        </li>
+                    </ul>
+                </li>
+            @endcanany
             <li>
                 <a href="javascript:;"><i class="sidebar-item-icon fa fa-users"></i>
                     <span class="nav-label">Users</span><i class="fa fa-angle-left arrow"></i></a>
@@ -65,7 +79,7 @@
                 </ul>
             </li>
             <li>
-                <a href="javascript:;"><i class="sidebar-item-icon fa fa-industry"></i>
+                <a href="javascript:;"><i class="sidebar-item-icon fa fa-truck"></i>
                     <span class="nav-label">Suppliers</span><i class="fa fa-angle-left arrow"></i></a>
                 <ul class="nav-2-level collapse">
                     <li>

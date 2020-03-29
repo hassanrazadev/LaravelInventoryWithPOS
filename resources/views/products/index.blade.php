@@ -30,6 +30,7 @@
                         <th>Name</th>
                         <th>Category</th>
                         <th>Code</th>
+                        <th>Quantity</th>
                         <th>Created By</th>
                         <th>Created At</th>
                         <th></th>
@@ -43,6 +44,7 @@
                             <td>{{$product['product_name']}}</td>
                             <td>{{$product['category']}}</td>
                             <td>{{$product['product_code']}}</td>
+                            <td>{{$product['quantity']}}</td>
                             <td>{{$product['created_by']}}</td>
                             <td>{{$product['created_at']}}</td>
                             <td class="text-center">
