@@ -54,7 +54,7 @@ class Purchase extends Model{
     /**
      * @return array
      */
-    protected function format(){
+    public function format(){
         return [
             'id' => $this->id,
             'supplier' => $this->supplier ? $this->supplier->name : '-',

@@ -58,6 +58,40 @@ class Category extends Model {
     // ===================== ORM Definition END ===================== //
 
     /**
+     * format object
+     * @return array
+     */
+    public function format(){
+        return [
+            'id' => $this->id,
+            'category_image' => asset('storage/'.$this->category_image),
+            'category_name' => $this->category_name,
+            'category_code' => $this->category_code,
+            'category_slug' => $this->category_slug,
+            'created_by' => $this->createdBy ? $this->createdBy->name : '-',
+            'updated_by' => $this->updatedBy ? $this->updatedBy->name : '-',
+            'parent_category' => $this->parent ? $this->parent->category_name : '-',
+            'parent_id' => $this->parent ? $this->parent->id : '',
+            'created_at' => $this->created_at,
+            'updated_at' => $this->created_at,
+            'deleted_at' => $this->deleted_at,
+            'products' => $this->products->map(function ($product){
+                return [
+                    'id' => $product->id,
+                    'created_by' => $product->created_by,
+                    'product_name' => $product->product_name,
+                    'product_code' => $product->product_code,
+                    'product_slug' => $product->product_slug,
+                    'quantity' => $product->quantity,
+                    'sale_price' => $product->sale_price,
+                    'created_at' => $product->created_at,
+
+                ];
+            })
+        ];
+    }
+
+    /**
      * Get all categories with parent and trashed
      *
      * @param null $exceptId
@@ -81,8 +115,9 @@ class Category extends Model {
                     }
                 ]);
             })
-            ->get();
-
+            ->get()->map(function ($category){
+                return $category->format();
+            });
         return $categories;
     }
 
@@ -101,8 +136,35 @@ class Category extends Model {
                     $query->withTrashed();
                 }
             ]);
-        })->first();
+        })->first()->format();
 
+        $data = [];
+        if ($category){
+            $data['status'] = true;
+            $data['category'] = $category;
+        }else{
+            $data['status'] = false;
+            $data['category'] = [];
+        }
+        return $data;
+    }
+
+    /**
+     * @param string $slug
+     * @param bool $withTrashed
+     * @return array
+     */
+    public function getCategoryBySlug(string $slug, bool $withTrashed = false) {
+        $category = $this->where('category_slug', $slug)
+            ->when($withTrashed, function ($query){
+                $query->withTrashed();
+            })
+            ->with([
+                'parent' => function ($query){
+                    $query->withTrashed();
+                }
+            ])
+            ->first()->format();
         $data = [];
         if ($category){
             $data['status'] = true;

@@ -64,11 +64,12 @@ class ProductController extends Controller {
     /**
      * Display the specified product.
      *
-     * @param int $id
+     * @param string $slug
      * @return Response
      */
-    public function show($id) {
-        //
+    public function show($slug) {
+        $data = $this->product->getProductBySlug($slug, true);
+        return view('products.show', $data);
     }
 
     /**

@@ -31,7 +31,6 @@
                         <th>Category</th>
                         <th>Code</th>
                         <th>Quantity</th>
-                        <th>Created By</th>
                         <th>Created At</th>
                         <th></th>
                     </tr>
@@ -45,9 +44,9 @@
                             <td>{{$product['category']}}</td>
                             <td>{{$product['product_code']}}</td>
                             <td>{{$product['quantity']}}</td>
-                            <td>{{$product['created_by']}}</td>
                             <td>{{$product['created_at']}}</td>
                             <td class="text-center">
+                                <a href="{{route('products.show', $product['product_slug'])}}" class="btn btn-info btn-xs m-r-5" data-toggle="tooltip" data-original-title="View"><i class="fa fa-eye font-14"></i></a>
                                 <a href="{{route('products.edit', $product['id'])}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
                                 <a href="{{route('products.destroy', $product['id'])}}" class="btn btn-danger delete-product btn-xs m-r-5" data-toggle="tooltip" data-original-title="Delete"><i class="fa fa-trash font-14"></i></a>
                                 <div class="switch_box">
@@ -76,6 +75,7 @@
     <script type="text/javascript">
         let dataTable = $('#category-table').DataTable({
             pageLength: 10,
+            responsive: true
         });
 
         $(document).on('change', '.soft-delete-product', function (e) {

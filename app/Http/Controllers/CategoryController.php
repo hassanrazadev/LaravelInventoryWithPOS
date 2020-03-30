@@ -59,6 +59,17 @@ class CategoryController extends Controller{
     }
 
     /**
+     * Display the specified resource.
+     *
+     * @param string $slug
+     * @return Response
+     */
+    public function show($slug) {
+        $data = $this->category->getCategoryBySlug($slug, true);
+        return view('categories.show', $data);
+    }
+
+    /**
      * Show the form for editing the specified category.
      *
      * @param  int  $id

@@ -3,6 +3,7 @@
 @section('title', 'Purchase Detail')
 
 @section('css')
+    <link href="{{asset('assets/css/datatables.min.css')}}" rel="stylesheet" />
 @endsection
 
 @section('content')
@@ -87,5 +88,10 @@
     </div>
 @endsection
 @section('js')
-
+    <script src="{{asset('assets/js/datatables.min.js')}}" type="text/javascript"></script>
+    <script type="text/javascript">
+        let dataTable = $('#products-table').DataTable({
+            pageLength: 10,
+        });
+    </script>
 @endsection

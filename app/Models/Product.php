@@ -76,7 +76,7 @@ class Product extends Model{
     public function getProductById(int $id, $withTrashed = false) {
         $product = $this->newQuery()
             ->where('id', $id)
-            ->when($withTrashed, function ($query) use ($id){
+            ->when($withTrashed, function ($query){
                 $query->withTrashed();
             })
             ->with([
@@ -97,6 +97,27 @@ class Product extends Model{
     }
 
     /**
+     * @param string $slug
+     * @param bool $withTrashed
+     * @return mixed
+     */
+    public function getProductBySlug(string $slug, $withTrashed = false) {
+        $product = $this::where('product_slug', $slug)
+            ->when($withTrashed, function ($query){
+                $query->withTrashed();
+            })
+            ->with([
+                'category' => function ($query){
+                    $query->withTrashed();
+                },
+                'purchases'
+            ])->firstOrFail()->format();
+
+        $data['status'] = true;
+        $data['product'] = $product;
+        return $data;
+    }
+    /**
      * @param bool $withTrashed
      * @return Collection
      */
@@ -113,7 +134,7 @@ class Product extends Model{
      * format product object
      * @return array
      */
-    protected function format(){
+    public function format(){
         return [
             'id' => $this->id,
             'category' => $this->category->category_name,
@@ -129,6 +150,16 @@ class Product extends Model{
             'created_at' => $this->created_at,
             'updated_at' => $this->created_at,
             'deleted_at' => $this->deleted_at,
+            'purchases' => $this->purchases->map(function ($purchase){
+                return [
+                    'purchase_id' => $purchase->id,
+                    'supplier' => $purchase->supplier ? $purchase->supplier->name : '-',
+                    'quantity' => $purchase->pivot->quantity,
+                    'unit_price' => $purchase->pivot->unit_price,
+                    'created_at' => $purchase->created_at,
+                    'sub_total' => $purchase->pivot->sub_total,
+                ];
+            })
         ];
     }
 
@@ -236,5 +267,6 @@ class Product extends Model{
 
         return $data;
     }
+
 
 }

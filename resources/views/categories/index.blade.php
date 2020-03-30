@@ -38,20 +38,21 @@
                     </thead>
                     <tbody>
                     @foreach($categories as $category)
-                        <tr data-parent="{{$category->parent ? $category->parent->id : ''}}" data-index="{{$category->id}}">
-                            <td>{{$category->id}}</td>
-                            <td><img class="img-fluid img-50" alt="category" src="{{asset('storage/'.$category->category_image)}}"></td>
-                            <td>{{$category->category_name}}</td>
-                            <td>{{$category->parent ? $category->parent->category_name : '-'}}</td>
-                            <td>{{$category->category_code}}</td>
-                            <td>{{$category->createdBy()->first()->name}}</td>
-                            <td>{{$category->created_at}}</td>
+                        <tr data-parent="{{$category['parent_id']}}" data-index="{{$category['id']}}">
+                            <td>{{$category['id']}}</td>
+                            <td><img class="img-fluid img-50" alt="category" src="{{$category['category_image']}}"></td>
+                            <td>{{$category['category_name']}}</td>
+                            <td>{{$category['parent_category']}}</td>
+                            <td>{{$category['category_code']}}</td>
+                            <td>{{$category['created_by']}}</td>
+                            <td>{{$category['created_at']}}</td>
                             <td class="text-center">
-                                <a href="{{route('categories.edit', $category->id)}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
-                                <a href="{{route('categories.destroy', $category->id)}}" class="btn btn-danger delete-category btn-xs m-r-5" data-toggle="tooltip" data-original-title="Delete"><i class="fa fa-trash font-14"></i></a>
+                                <a href="{{route('categories.show', $category['category_slug'])}}" class="btn btn-info btn-xs m-r-5" data-toggle="tooltip" data-original-title="View"><i class="fa fa-eye font-14"></i></a>
+                                <a href="{{route('categories.edit', $category['id'])}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
+                                <a href="{{route('categories.destroy', $category['id'])}}" class="btn btn-danger delete-category btn-xs m-r-5" data-toggle="tooltip" data-original-title="Delete"><i class="fa fa-trash font-14"></i></a>
                                 <div class="switch_box">
                                     <div class="input_wrapper">
-                                        <input type="checkbox" data-url="{{route('categories.delete', $category->id)}}" {{$category->deleted_at == null ? 'checked' : ''}} class="switch_4 soft-delete-category">
+                                        <input type="checkbox" data-url="{{route('categories.delete', $category['id'])}}" {{$category['deleted_at'] == null ? 'checked' : ''}} class="switch_4 soft-delete-category">
                                         <svg class="is_checked" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 426.67 426.67">
                                             <path d="M153.504 366.84c-8.657 0-17.323-3.303-23.927-9.912L9.914 237.265c-13.218-13.218-13.218-34.645 0-47.863 13.218-13.218 34.645-13.218 47.863 0l95.727 95.727 215.39-215.387c13.218-13.214 34.65-13.218 47.86 0 13.22 13.218 13.22 34.65 0 47.863L177.435 356.928c-6.61 6.605-15.27 9.91-23.932 9.91z"/>
                                         </svg>
