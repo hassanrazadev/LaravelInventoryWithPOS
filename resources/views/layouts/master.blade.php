@@ -195,6 +195,11 @@
 @yield('js')
 <!-- PAGE LEVEL SCRIPTS-->
 <script>
+    $(document).on('keyup change', '.form-control', function (e) {
+        $(this).siblings('.invalid-feedback').remove();
+        $(this).removeClass('is-invalid');
+        $(this).parents('.form-group').removeClass('has-error');
+    });
     function showToast(heading, text, icon) {
         $.toast({
             heading: heading,

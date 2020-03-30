@@ -28,11 +28,6 @@ let imageField = $('#product_image');
 
 initImageCropperModal(imagePreview, imagePicker, imageField);
 
-$(document).on('keyup, change', '.form-control', function (e) {
-    $(this).siblings('.invalid-feedback').remove();
-    $(this).removeClass('is-invalid');
-});
-
 $(document).on('change', '#product_image_picker', function (e) {
     let imagePath = $(this).val();
     let allowedExtensions = /(\.jpg|\.png|\.jpeg)$/i;

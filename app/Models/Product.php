@@ -56,7 +56,7 @@ class Product extends Model{
      * @return BelongsToMany
      */
     public function purchases(){
-        return $this->belongsToMany(Purchase::class)->withPivot('quantity', 'unit_price', 'sub_total');
+        return $this->belongsToMany(Purchase::class, 'purchase_details')->withPivot('quantity', 'unit_price', 'sub_total');
     }
 
     /**

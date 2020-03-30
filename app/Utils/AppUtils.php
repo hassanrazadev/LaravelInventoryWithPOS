@@ -19,6 +19,18 @@ class AppUtils {
     }
 
     /**
+     * @param $errors
+     * @param $fieldName
+     * @return string
+     */
+    public static function formGroupError($errors, $fieldName){
+        if ($errors->has($fieldName)){
+            return 'has-error';
+        }
+        return '';
+    }
+
+    /**
      * @param $image
      * @return bool|mixed|string
      */

@@ -51,12 +51,16 @@
                     <a href="javascript:;"><i class="sidebar-item-icon fa fa-briefcase"></i>
                         <span class="nav-label">Purchases</span><i class="fa fa-angle-left arrow"></i></a>
                     <ul class="nav-2-level collapse">
-                        <li>
-                            <a class="{{url()->current() == route('purchases.create') ? 'active' : ''}}" href="{{route('purchases.create')}}">Create New</a>
-                        </li>
-                        <li>
-                            <a class="{{url()->current() == route('purchases.index') ? 'active' : ''}}" href="{{route('purchases.index')}}">Manage Purchases</a>
-                        </li>
+                        @can('create purchase')
+                            <li>
+                                <a class="{{url()->current() == route('purchases.create') ? 'active' : ''}}" href="{{route('purchases.create')}}">Create New</a>
+                            </li>
+                        @endcan
+                        @can('read purchase')
+                            <li>
+                                <a class="{{url()->current() == route('purchases.index') ? 'active' : ''}}" href="{{route('purchases.index')}}">Manage Purchases</a>
+                            </li>
+                        @endcan
                     </ul>
                 </li>
             @endcanany
