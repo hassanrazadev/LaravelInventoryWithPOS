@@ -21,7 +21,7 @@
     <link href="{{asset('assets/css/main.min.css')}}" rel="stylesheet" />
 </head>
 
-<body class="fixed-navbar">
+<body class="fixed-navbar @yield('body-classes')">
 <div class="page-wrapper">
     <!-- START HEADER-->
     <x-header/>

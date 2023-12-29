@@ -5,7 +5,7 @@
                 <img src="{{asset('assets/img/admin-avatar.png')}}" width="45px" />
             </div>
             <div class="admin-info">
-                <div class="font-strong">{{$user['user']['name']}}</div><small class="text-capitalize">{{$user['user']['role']}}</small></div>
+                <div class="font-strong">{{$user['name']}}</div><small class="text-capitalize">{{$user['role']}}</small></div>
         </div>
         <ul class="side-menu metismenu">
             <li>
@@ -59,6 +59,24 @@
                         @can('read purchase')
                             <li>
                                 <a class="{{url()->current() == route('purchases.index') ? 'active' : ''}}" href="{{route('purchases.index')}}">Manage Purchases</a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+            @canany(['create order', 'read order'])
+                <li class="{{$activeNav == 'orders' ? 'active' : ''}}">
+                    <a href="javascript:;"><i class="sidebar-item-icon fa fa-shopping-basket"></i>
+                        <span class="nav-label">Orders</span><i class="fa fa-angle-left arrow"></i></a>
+                    <ul class="nav-2-level collapse">
+                        @can('create order')
+                            <li>
+                                <a class="{{url()->current() == route('orders.create') ? 'active' : ''}}" href="{{route('orders.create')}}">Create New / POS</a>
+                            </li>
+                        @endcan
+                        @can('read order')
+                            <li>
+                                <a class="{{url()->current() == route('orders.index') ? 'active' : ''}}" href="{{route('purchases.index')}}">Manage Orders</a>
                             </li>
                         @endcan
                     </ul>

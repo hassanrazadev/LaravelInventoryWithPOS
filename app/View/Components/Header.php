@@ -5,15 +5,21 @@ namespace App\View\Components;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-class Header extends Component
-{
+class Header extends Component {
+
+    public $user;
+
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct(){
-
+    public function __construct() {
+        $user = auth()->user();
+        $this->user = [
+            'name' => $user->name,
+            'email' => $user->email,
+        ];
     }
 
     /**
@@ -21,20 +27,8 @@ class Header extends Component
      *
      * @return View|string
      */
-    public function render(){
+    public function render() {
         return view('components.header');
     }
 
-    /**
-     * @return mixed
-     */
-    public function user(){
-        $user = auth()->user();
-        $data['user'] = [
-            'name' => $user->name,
-            'email' => $user->email,
-        ];
-
-        return $data;
-    }
 }

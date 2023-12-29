@@ -9,12 +9,22 @@ use Illuminate\View\View;
 class Sidebar extends Component
 {
     /**
+     * @var array
+     */
+    public $user;
+
+    /**
      * Create a new component instance.
      *
      * @return void
      */
     public function __construct(){
-
+        $user = auth()->user();
+        $this->user = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->roles()->first()->name
+        ];
     }
 
     /**
@@ -24,20 +34,6 @@ class Sidebar extends Component
      */
     public function render(){
         return view('components.sidebar');
-    }
-
-    /**
-     * @return mixed
-     */
-    public function user(){
-        $user = auth()->user();
-        $data['user'] = [
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->roles()->first()->name
-        ];
-
-        return $data;
     }
 
     public function activeNav(){
