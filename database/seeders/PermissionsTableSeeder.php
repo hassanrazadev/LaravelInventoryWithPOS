@@ -10,10 +10,8 @@ class PermissionsTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -50,6 +48,18 @@ class PermissionsTableSeeder extends Seeder
             'read return',
             'update return',
             'delete return',
+            'create user',
+            'read user',
+            'update user',
+            'delete user',
+            'create role',
+            'read role',
+            'update role',
+            'delete role',
+            'create permission',
+            'read permission',
+            'update permission',
+            'delete permission',
         ];
 
         foreach ($permissions as $permission) {

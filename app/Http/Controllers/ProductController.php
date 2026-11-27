@@ -7,8 +7,10 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ProductController extends Controller {
+class ProductController extends Controller implements HasMiddleware {
 
     /**
      * @var Category
@@ -18,6 +20,16 @@ class ProductController extends Controller {
      * @var Product
      */
     private $product;
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:read product', only: ['index', 'show']),
+            new Middleware('permission:create product', only: ['create', 'store']),
+            new Middleware('permission:update product', only: ['edit', 'update']),
+            new Middleware('permission:delete product', only: ['destroy', 'deleteOrRestore']),
+        ];
+    }
 
     /**
      * ProductController constructor.

@@ -28,13 +28,25 @@ class SeederTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(1, Role::where('name', 'admin')->count());
-        $this->assertSame(32, Permission::count());
+        $this->assertSame(1, Role::where('name', 'manager')->count());
+        $this->assertSame(1, Role::where('name', 'cashier')->count());
+        $this->assertSame(44, Permission::count());
         $this->assertDatabaseHas('permissions', ['name' => 'create purchase']);
-        $this->assertDatabaseHas('permissions', ['name' => 'read purchase']);
+        $this->assertDatabaseHas('permissions', ['name' => 'create user']);
+        $this->assertDatabaseHas('permissions', ['name' => 'create role']);
+        $this->assertDatabaseHas('permissions', ['name' => 'create permission']);
 
         $admin = User::where('email', 'admin@test.com')->first();
         $this->assertNotNull($admin);
         $this->assertTrue($admin->hasRole('admin'));
+
+        $manager = User::where('email', 'manager@test.com')->first();
+        $this->assertNotNull($manager);
+        $this->assertTrue($manager->hasRole('manager'));
+
+        $cashier = User::where('email', 'cashier@test.com')->first();
+        $this->assertNotNull($cashier);
+        $this->assertTrue($cashier->hasRole('cashier'));
 
         $this->assertSame(6, Category::withTrashed()->count());
         $this->assertSame(1, Category::onlyTrashed()->count());

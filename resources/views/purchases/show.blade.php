@@ -19,9 +19,11 @@
     <div class="page-content fade-in-up">
         <div class="ibox">
             <div class="ibox-head">
-                <div class="ibox-title d-flex w-100 justify-content-between">
+                <div class="ibox-title d-flex w-100 justify-content-between align-items-center">
                     <span>Purchase</span>
-                    <a href="{{route('purchases.edit', $purchase['id'])}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
+                    @can('update purchase')
+                        <a href="{{route('purchases.edit', $purchase['id'])}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
+                    @endcan
                 </div>
             </div>
             <div class="ibox-body">
@@ -51,7 +53,7 @@
                         <div class="col-md-7">{{$purchase['updated_at']}}</div>
                     </div>
                 </div>
-                <h6 class="m-b-20 m-t-20"><i class="fa fa-cubes"></i>Products</h6>
+                <h6 class="m-b-20 m-t-20"><i class="fa fa-cubes mr-2"></i>Products</h6>
                 <table id="products-table" class="table table-striped table-hover">
                     <thead>
                     <tr>

@@ -7,14 +7,21 @@
 @endsection
 
 @section('content')
-    <div class="page-heading">
-        <h1 class="page-title">Manage Purchases</h1>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{route('dashboard')}}"><i class="fa fa-home font-20"></i></a>
-            </li>
-            <li class="breadcrumb-item">Manage Purchases</li>
-        </ol>
+    <div class="page-heading ims-page-header">
+        <div>
+            <h1 class="page-title">Manage Purchases</h1>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{route('dashboard')}}"><i class="fa fa-home font-18"></i></a>
+                </li>
+                <li class="breadcrumb-item">Manage Purchases</li>
+            </ol>
+        </div>
+        @can('create purchase')
+            <a href="{{ route('purchases.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus mr-1"></i> New Purchase
+            </a>
+        @endcan
     </div>
     <div class="page-content fade-in-up">
         <div class="ibox">
@@ -47,8 +54,12 @@
                             <td>{{$purchase['created_at']}}</td>
                             <td class="text-center">
                                 <a href="{{route('purchases.show', $purchase['id'])}}" class="btn btn-info btn-xs m-r-5" data-toggle="tooltip" data-original-title="View"><i class="fa fa-eye font-14"></i></a>
-                                <a href="{{route('purchases.edit', $purchase['id'])}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
-                                <a href="{{route('purchases.destroy', $purchase['id'])}}" class="btn btn-danger delete-purchase btn-xs m-r-5" data-toggle="tooltip" data-original-title="Delete"><i class="fa fa-trash font-14"></i></a>
+                                @can('update purchase')
+                                    <a href="{{route('purchases.edit', $purchase['id'])}}" class="btn btn-primary btn-xs m-r-5" data-toggle="tooltip" data-original-title="Edit"><i class="fa fa-pencil font-14"></i></a>
+                                @endcan
+                                @can('delete purchase')
+                                    <a href="{{route('purchases.destroy', $purchase['id'])}}" class="btn btn-danger delete-purchase btn-xs m-r-5" data-toggle="tooltip" data-original-title="Delete"><i class="fa fa-trash font-14"></i></a>
+                                @endcan
                             </td>
                         </tr>
                     @endforeach

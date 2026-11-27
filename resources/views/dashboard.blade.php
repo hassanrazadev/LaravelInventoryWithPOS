@@ -3,6 +3,20 @@
 @section('title', 'Dashboard')
 
 @section('content')
+    <div class="page-heading ims-page-header mb-3">
+        <div>
+            <h1 class="page-title">Dashboard</h1>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="fa fa-home font-18"></i></a></li>
+                <li class="breadcrumb-item">Overview</li>
+            </ol>
+        </div>
+        @can('create order')
+            <a href="{{ route('orders.create') }}" class="btn btn-primary">
+                <i class="fa fa-shopping-basket mr-1"></i> Open POS
+            </a>
+        @endcan
+    </div>
     <div class="row">
         <div class="col-lg-3 col-md-6">
             <div class="ibox bg-success color-white widget-stat">

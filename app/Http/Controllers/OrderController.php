@@ -3,8 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class OrderController extends Controller {
+class OrderController extends Controller implements HasMiddleware {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:read order', only: ['index', 'show']),
+            new Middleware('permission:create order', only: ['create', 'store']),
+            new Middleware('permission:update order', only: ['edit', 'update']),
+            new Middleware('permission:delete order', only: ['destroy', 'deleteOrRestore']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      *

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,57 +11,79 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array
+     * @var list<string>
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name',
+        'email',
+        'password',
+        'email_verified_at',
+        'created_by',
+        'updated_by',
     ];
 
     /**
-     * The attributes that should be hidden for arrays.
+     * The attributes that should be hidden for serialization.
      *
-     * @var array
+     * @var list<string>
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     /**
-     * The attributes that should be cast to native types.
+     * Get the attributes that should be cast.
      *
-     * @var array
+     * @return array<string, string>
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+        ];
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
 
     /**
-     * @param array $params
-     * @return array
+     * Attempt user login with optional remember-me persistence.
      */
-    public function doLogin(array $params){
+    public function doLogin(array $params): array
+    {
         $user = $this::where('email', $params['email'])->first();
+        $remember = (bool) ($params['remember'] ?? false);
         $data = [];
-        if (!$user){
+
+        if (! $user) {
             $data['status'] = false;
-            $data['message'] = "No account found for email " . $params['email'];
-        } elseif ($user->email_verified_at == null){
+            $data['message'] = 'No account found for email '.$params['email'];
+        } elseif ($user->email_verified_at === null) {
             $data['status'] = false;
-            $data['message'] = "Please verify your email";
-        } elseif (auth()->attempt(['email' => $params['email'], 'password' => $params['password']])){
+            $data['message'] = 'Please verify your email';
+        } elseif (auth()->attempt(['email' => $params['email'], 'password' => $params['password']], $remember)) {
             $data['status'] = true;
-            $data['message'] = "Login Success";
-        } else{
+            $data['message'] = 'Login Success';
+        } else {
             $data['status'] = false;
-            $data['message'] = "Email or Password is incorrect";
+            $data['message'] = 'Email or Password is incorrect';
         }
+
         return $data;
     }
 }

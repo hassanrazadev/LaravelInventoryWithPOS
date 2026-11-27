@@ -1,5 +1,5 @@
 $('.select2_select').select2({
-    placeholder: "Select parent category",
+    placeholder: "Select category",
     allowClear: true
 });
 
