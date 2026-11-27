@@ -8,12 +8,14 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
+use App\Services\ThermalReceiptService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -24,6 +26,7 @@ class OrderController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:read order', only: ['index', 'show', 'receipt']),
             new Middleware('permission:create order', only: ['create', 'store', 'products']),
+            new Middleware('permission:create order|read order', only: ['testThermalPrinter', 'printThermal']),
             new Middleware('permission:update order|delete order', only: ['cancel']),
             new Middleware('permission:delete order', only: ['destroy', 'deleteOrRestore']),
         ];
@@ -56,7 +59,9 @@ class OrderController extends Controller implements HasMiddleware
 
     public function create(): View
     {
-        $categories = Category::orderBy('category_name')->get(['id', 'category_name']);
+        $categories = Category::withCount('products')
+            ->orderBy('category_name')
+            ->get(['id', 'category_name']);
         $customers = Customer::orderBy('name')->get(['id', 'name', 'phone']);
         $products = Product::with(['category' => fn ($q) => $q->withTrashed()])
             ->orderBy('product_name')
@@ -64,8 +69,9 @@ class OrderController extends Controller implements HasMiddleware
             ->map(fn (Product $product): array => $this->formatPosProduct($product))
             ->values();
         $paymentMethods = Order::PAYMENT_METHODS;
+        $printerConfig = config('pos.printer');
 
-        return view('orders.create', compact('categories', 'customers', 'products', 'paymentMethods'));
+        return view('orders.create', compact('categories', 'customers', 'products', 'paymentMethods', 'printerConfig'));
     }
 
     public function products(Request $request): JsonResponse
@@ -204,6 +210,7 @@ class OrderController extends Controller implements HasMiddleware
                     'total_items' => $order->total_items,
                 ],
                 'receipt_url' => route('orders.receipt', $order->id),
+                'print_thermal_url' => route('orders.printThermal', $order->id),
                 'show_url' => route('orders.show', $order->id),
             ], 201);
         }
@@ -220,11 +227,30 @@ class OrderController extends Controller implements HasMiddleware
         return view('orders.show', compact('order'));
     }
 
-    public function receipt(int $id): View
+    public function receipt(Request $request, int $id): View
     {
         $order = $this->findOrderWithRelations($id);
+        $paperWidth = (int) $request->query('width', config('pos.printer.paper_width', 80)) === 58 ? 58 : 80;
+        $printerConfig = config('pos.printer');
 
-        return view('orders.receipt', compact('order'));
+        return view('orders.receipt', compact('order', 'paperWidth', 'printerConfig'));
+    }
+
+    public function testThermalPrinter(Request $request, ThermalReceiptService $printerService): JsonResponse
+    {
+        $options = $this->validatePrinterOptions($request, $printerService);
+        $result = $printerService->printTest($options);
+
+        return response()->json($result);
+    }
+
+    public function printThermal(Request $request, int $id, ThermalReceiptService $printerService): JsonResponse
+    {
+        $order = $this->findOrderWithRelations($id);
+        $options = $this->validatePrinterOptions($request, $printerService);
+        $result = $printerService->printOrder($order, $options);
+
+        return response()->json($result);
     }
 
     public function cancel(Request $request, int $id): JsonResponse|RedirectResponse
@@ -335,5 +361,28 @@ class OrderController extends Controller implements HasMiddleware
             'quantity' => (int) $product->quantity,
             'image' => asset('storage/'.$product->product_image),
         ];
+    }
+
+    private function validatePrinterOptions(Request $request, ThermalReceiptService $printerService): array
+    {
+        $validated = $request->validate([
+            'driver' => ['nullable', 'string', Rule::in(['tcp', 'http'])],
+            'host' => [
+                'nullable',
+                'string',
+                'max:100',
+                function (string $attribute, mixed $value, \Closure $fail) use ($printerService): void {
+                    if ($value !== null && $value !== '' && ! $printerService->isAllowedPrinterHost((string) $value)) {
+                        $fail('Only localhost or private LAN IP printer hosts are allowed.');
+                    }
+                },
+            ],
+            'port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'http_path' => ['nullable', 'string', 'max:120'],
+            'http_format' => ['nullable', 'string', Rule::in(['escpos', 'text'])],
+            'paper_width' => ['nullable', 'integer', Rule::in([58, 80])],
+        ]);
+
+        return array_filter($validated, fn (mixed $v): bool => $v !== null && $v !== '');
     }
 }

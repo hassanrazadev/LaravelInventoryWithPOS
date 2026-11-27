@@ -2,34 +2,60 @@
     'use strict';
 
     const config = window.POS_CONFIG || {};
+    const PRINTER_STORAGE_KEY = 'ims_pos_printer_settings';
+
     let catalog = Array.isArray(config.products) ? config.products : [];
     const cart = new Map();
     let activeCategoryId = '';
     let searchTerm = '';
+    let inStockOnly = false;
     let isSubmitting = false;
+    let pendingPrintMode = 'none';
+    let lastCompletedOrder = null;
 
     const $search = $('#pos-product-search');
     const $searchClear = $('#pos-search-clear');
+    const $inStockBtn = $('#pos-instock-toggle');
     const $categoryPills = $('#pos-category-pills');
     const $catalogCount = $('#pos-catalog-count');
     const $grid = $('#pos-product-grid');
-    const $cartBody = $('#pos-cart-body');
+    const $cartList = $('#pos-cart-list');
     const $cartItemsCount = $('#pos-cart-items-count');
     const $clearCartBtn = $('#pos-clear-cart');
     const $discount = $('#pos-discount');
     const $taxRate = $('#pos-tax-rate');
+    const $noteToggle = $('#pos-note-toggle');
+    const $notesWrap = $('#pos-notes-wrap');
+    const $notes = $('#pos-notes');
     const $subtotalEl = $('#pos-subtotal');
     const $taxAmountEl = $('#pos-tax-amount');
     const $grandTotalEl = $('#pos-grand-total');
     const $paymentMethod = $('#pos-payment-method');
+    const $payPills = $('#pos-pay-pills');
     const $paidAmount = $('#pos-paid-amount');
     const $exactBtn = $('#pos-exact-btn');
+    const $cashChips = $('#pos-cash-chips');
     const $changeEl = $('#pos-change-due');
-    const $paymentHint = $('#pos-payment-hint');
-    const $notes = $('#pos-notes');
+    const $changePill = $('#pos-change-pill');
     const $customerSelect = $('#customer_id');
     const $checkoutBtn = $('#pos-checkout-btn');
+    const $checkoutPrintBtn = $('#pos-checkout-print-btn');
     const $errorAlert = $('#pos-checkout-error');
+    const $printerSummary = $('#pos-printer-summary');
+
+    // Printer settings elements
+    const $printerModal = $('#pos-printer-settings-modal');
+    const $printerDriver = $('#printer_driver');
+    const $printerHost = $('#printer_host');
+    const $printerPort = $('#printer_port');
+    const $printerHttpPath = $('#printer_http_path');
+    const $printerHttpFormat = $('#printer_http_format');
+    const $printerPaperWidth = $('#printer_paper_width');
+    const $printerAutoprint = $('#printer_autoprint');
+    const $printerNetworkFields = $('#pos-printer-network-fields');
+    const $printerHttpFields = $('#pos-printer-http-fields');
+    const $printerTestStatus = $('#pos-printer-test-status');
+    const $testPrintBtn = $('#pos-test-print-btn');
 
     function escapeHtml(value) {
         return String(value === null || value === undefined ? '' : value)
@@ -48,9 +74,86 @@
         return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
     }
 
+    function loadPrinterSettings() {
+        const defaults = config.defaultPrinter || {};
+        let saved = {};
+        try {
+            saved = JSON.parse(localStorage.getItem(PRINTER_STORAGE_KEY) || '{}');
+        } catch (e) {
+            saved = {};
+        }
+
+        const driver = ['tcp', 'http', 'browser'].includes(saved.driver)
+            ? saved.driver
+            : (['tcp', 'http', 'browser'].includes(defaults.driver) ? defaults.driver : 'tcp');
+
+        return {
+            driver: driver,
+            host: saved.host || defaults.host || '127.0.0.1',
+            port: Number(saved.port || defaults.port || 8000),
+            http_path: saved.http_path || defaults.http_path || '/',
+            http_format: saved.http_format === 'text' ? 'text' : (defaults.http_format === 'text' ? 'text' : 'escpos'),
+            paper_width: Number(saved.paper_width || defaults.paper_width || 80) === 58 ? 58 : 80,
+            autoprint: Boolean(saved.autoprint),
+        };
+    }
+
+    function savePrinterSettings(settings) {
+        try {
+            localStorage.setItem(PRINTER_STORAGE_KEY, JSON.stringify(settings));
+        } catch (e) {
+            // Ignore storage quota errors cleanly
+        }
+        renderPrinterSummary();
+    }
+
+    function renderPrinterSummary() {
+        const s = loadPrinterSettings();
+        if (s.driver === 'browser') {
+            $printerSummary.text('Browser Print · ' + s.paper_width + 'mm');
+            return;
+        }
+        const label = s.driver === 'http' ? 'HTTP ' : '';
+        $printerSummary.text(label + s.host + ':' + s.port + ' · ' + s.paper_width + 'mm');
+    }
+
+    function syncPrinterModalFields() {
+        const s = loadPrinterSettings();
+        $printerDriver.val(s.driver);
+        $printerHost.val(s.host);
+        $printerPort.val(s.port);
+        $printerHttpPath.val(s.http_path);
+        $printerHttpFormat.val(s.http_format);
+        $printerPaperWidth.val(String(s.paper_width));
+        $printerAutoprint.prop('checked', s.autoprint);
+        togglePrinterDriverFields();
+    }
+
+    function togglePrinterDriverFields() {
+        const driver = $printerDriver.val();
+        $printerNetworkFields.toggleClass('d-none', driver === 'browser');
+        $printerHttpFields.toggleClass('d-none', driver !== 'http');
+        $testPrintBtn.toggleClass('d-none', driver === 'browser');
+    }
+
+    function readPrinterModalForm() {
+        return {
+            driver: $printerDriver.val(),
+            host: ($printerHost.val() || '127.0.0.1').trim(),
+            port: parseInt($printerPort.val(), 10) || 8000,
+            http_path: ($printerHttpPath.val() || '/').trim(),
+            http_format: $printerHttpFormat.val() || 'escpos',
+            paper_width: parseInt($printerPaperWidth.val(), 10) === 58 ? 58 : 80,
+            autoprint: $printerAutoprint.is(':checked'),
+        };
+    }
+
     function filteredProducts() {
         const q = searchTerm.trim().toLowerCase();
         return catalog.filter(function (product) {
+            if (inStockOnly && product.quantity <= 0) {
+                return false;
+            }
             if (activeCategoryId !== '' && String(product.category_id) !== String(activeCategoryId)) {
                 return false;
             }
@@ -67,12 +170,10 @@
 
         if (items.length === 0) {
             $grid.html(
-                '<div class="col-12">' +
-                    '<div class="pos-empty-state text-center py-5">' +
-                        '<i class="fa fa-search fa-2x text-muted mb-2"></i>' +
-                        '<p class="mb-2 font-weight-medium">No matching products found</p>' +
-                        '<button type="button" class="btn btn-sm btn-outline-primary" id="pos-reset-filters">Reset filters</button>' +
-                    '</div>' +
+                '<div class="pos-empty-state text-center py-5">' +
+                    '<i class="fa fa-search fa-2x text-muted mb-2"></i>' +
+                    '<p class="mb-2 font-weight-medium">No matching products found</p>' +
+                    '<button type="button" class="btn btn-sm btn-outline-primary" id="pos-reset-filters">Reset filters</button>' +
                 '</div>'
             );
             return;
@@ -94,23 +195,21 @@
             }
 
             return (
-                '<div class="col-xl-4 col-sm-6 mb-3">' +
-                    '<div class="pos-product-card ' + (outOfStock ? 'is-out-of-stock' : '') + (inCartQty > 0 ? ' is-in-cart' : '') + '" data-product-id="' + product.id + '" tabindex="0" role="button" aria-label="Add ' + escapeHtml(product.name) + ' to cart">' +
-                        '<div class="pos-product-thumb">' +
-                            '<img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name) + '">' +
-                            '<span class="badge ' + stockBadgeClass + ' pos-stock-badge">' + escapeHtml(stockLabel) + '</span>' +
-                            (inCartQty > 0 ? '<span class="badge badge-primary pos-cart-qty-pill">' + inCartQty + ' in cart</span>' : '') +
+                '<div class="pos-product-card ' + (outOfStock ? 'is-out-of-stock' : '') + (inCartQty > 0 ? ' is-in-cart' : '') + '" data-product-id="' + product.id + '" tabindex="0" role="button" aria-label="Add ' + escapeHtml(product.name) + ' to cart">' +
+                    '<div class="pos-product-thumb">' +
+                        '<img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name) + '">' +
+                        '<span class="badge ' + stockBadgeClass + ' pos-stock-badge">' + escapeHtml(stockLabel) + '</span>' +
+                        (inCartQty > 0 ? '<span class="badge badge-primary pos-cart-qty-pill">' + inCartQty + ' in cart</span>' : '') +
+                    '</div>' +
+                    '<div class="pos-product-body">' +
+                        '<div class="pos-product-title" title="' + escapeHtml(product.name) + '">' + escapeHtml(product.name) + '</div>' +
+                        '<div class="pos-product-meta">' +
+                            '<span class="pos-sku">' + escapeHtml(product.code) + '</span>' +
+                            '<span class="pos-category">' + escapeHtml(product.category_name) + '</span>' +
                         '</div>' +
-                        '<div class="pos-product-body">' +
-                            '<div class="pos-product-title" title="' + escapeHtml(product.name) + '">' + escapeHtml(product.name) + '</div>' +
-                            '<div class="pos-product-meta">' +
-                                '<span class="pos-sku">' + escapeHtml(product.code) + '</span>' +
-                                '<span class="pos-category">' + escapeHtml(product.category_name) + '</span>' +
-                            '</div>' +
-                            '<div class="pos-product-footer">' +
-                                '<span class="pos-price">' + money(product.sale_price) + '</span>' +
-                                '<span class="pos-add-chip">' + (outOfStock ? 'Unavailable' : '<i class="fa fa-plus"></i> Add') + '</span>' +
-                            '</div>' +
+                        '<div class="pos-product-footer">' +
+                            '<span class="pos-price">' + money(product.sale_price) + '</span>' +
+                            '<span class="pos-add-chip">' + (outOfStock ? 'Out' : '<i class="fa fa-plus"></i> Add') + '</span>' +
                         '</div>' +
                     '</div>' +
                 '</div>'
@@ -167,13 +266,12 @@
 
     function renderCart() {
         if (cart.size === 0) {
-            $cartBody.html(
-                '<tr class="pos-cart-empty-row">' +
-                    '<td colspan="5" class="text-center text-muted py-4">' +
-                        '<i class="fa fa-shopping-basket fa-2x mb-2 d-block text-muted"></i>' +
-                        'Cart is empty. Click a product card or scan a SKU code.' +
-                    '</td>' +
-                '</tr>'
+            $cartList.html(
+                '<div class="pos-cart-empty">' +
+                    '<i class="fa fa-shopping-basket fa-2x mb-2 text-muted"></i>' +
+                    '<div class="font-weight-medium text-dark">Cart is empty</div>' +
+                    '<small class="text-muted">Click any product card or scan a SKU code to start.</small>' +
+                '</div>'
             );
             $clearCartBtn.prop('disabled', true);
         } else {
@@ -182,27 +280,28 @@
                 const p = entry.product;
                 const lineTotal = round2(p.sale_price * entry.quantity);
                 rows.push(
-                    '<tr data-product-id="' + p.id + '">' +
-                        '<td>' +
-                            '<div class="font-weight-medium text-dark pos-cart-item-name">' + escapeHtml(p.name) + '</div>' +
-                            '<small class="text-muted">' + escapeHtml(p.code) + ' · Stock: ' + p.quantity + '</small>' +
-                        '</td>' +
-                        '<td class="text-nowrap">' + money(p.sale_price) + '</td>' +
-                        '<td>' +
+                    '<div class="pos-cart-item" data-product-id="' + p.id + '">' +
+                        '<div class="pos-cart-item-top">' +
+                            '<div class="pos-cart-item-name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</div>' +
+                            '<div class="d-flex align-items-center" style="gap: 8px;">' +
+                                '<span class="pos-cart-item-total">' + money(lineTotal) + '</span>' +
+                                '<button type="button" class="pos-cart-remove pos-remove-item" title="Remove item" aria-label="Remove ' + escapeHtml(p.name) + '">' +
+                                    '<i class="fa fa-times"></i>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="pos-cart-item-bottom">' +
+                            '<small class="text-muted">' + escapeHtml(p.code) + ' · ' + money(p.sale_price) + ' ea · ' + p.quantity + ' left</small>' +
                             '<div class="pos-qty-control">' +
                                 '<button type="button" class="btn btn-light btn-xs pos-qty-dec" aria-label="Decrease quantity"><i class="fa fa-minus"></i></button>' +
                                 '<input type="number" class="form-control form-control-sm pos-qty-input" min="1" max="' + p.quantity + '" value="' + entry.quantity + '">' +
                                 '<button type="button" class="btn btn-light btn-xs pos-qty-inc" aria-label="Increase quantity"><i class="fa fa-plus"></i></button>' +
                             '</div>' +
-                        '</td>' +
-                        '<td class="font-weight-semibold text-nowrap">' + money(lineTotal) + '</td>' +
-                        '<td class="text-right">' +
-                            '<button type="button" class="btn btn-link btn-xs text-danger p-0 pos-remove-item" title="Remove"><i class="fa fa-trash"></i></button>' +
-                        '</td>' +
-                    '</tr>'
+                        '</div>' +
+                    '</div>'
                 );
             });
-            $cartBody.html(rows.join(''));
+            $cartList.html(rows.join(''));
             $clearCartBtn.prop('disabled', false);
         }
 
@@ -215,20 +314,24 @@
         $subtotalEl.text(money(totals.subtotal));
         $taxAmountEl.text(money(totals.taxAmount));
         $grandTotalEl.text(money(totals.grandTotal));
-        $changeEl.text(money(totals.change));
 
-        $paymentHint.removeClass('text-danger text-success').text('');
+        $('#pos-checkout-btn-label').text(
+            totals.grandTotal > 0 ? 'Complete Sale · ' + money(totals.grandTotal) : 'Complete Sale'
+        );
+
+        $changePill.removeClass('text-danger text-success');
         if (cart.size > 0 && totals.discountExceeds) {
-            $paymentHint.addClass('text-danger').text('Discount exceeds the subtotal.');
+            $changePill.addClass('text-danger').html('Discount too high');
         } else if (cart.size > 0 && totals.paid + 0.00001 < totals.grandTotal) {
-            const remaining = round2(totals.grandTotal - totals.paid);
-            $paymentHint.addClass('text-danger').text('Balance due: ' + money(remaining));
-        } else if (cart.size > 0 && totals.change > 0) {
-            $paymentHint.addClass('text-success').text('Ready to complete sale.');
+            const due = round2(totals.grandTotal - totals.paid);
+            $changePill.addClass('text-danger').html('Due: <strong>' + money(due) + '</strong>');
+        } else {
+            $changePill.addClass('text-success').html('Change: <strong id="pos-change-due">' + money(totals.change) + '</strong>');
         }
 
         const canSubmit = !isSubmitting && cart.size > 0 && !totals.discountExceeds && (totals.paid + 0.00001 >= totals.grandTotal);
         $checkoutBtn.prop('disabled', !canSubmit);
+        $checkoutPrintBtn.prop('disabled', !canSubmit);
     }
 
     function addToCart(productId) {
@@ -288,9 +391,58 @@
         $taxRate.val('0');
         $paidAmount.val('').data('auto-synced', 1);
         $notes.val('');
+        $notesWrap.addClass('d-none');
         setCheckoutError('');
         renderCart();
         renderCatalog();
+    }
+
+    function sendThermalPrintJob(printThermalUrl, receiptUrl, $statusTarget) {
+        const settings = loadPrinterSettings();
+
+        if (settings.driver === 'browser') {
+            window.open(receiptUrl + '?width=' + settings.paper_width + '&autoprint=1', '_blank');
+            if ($statusTarget && $statusTarget.length) {
+                $statusTarget
+                    .removeClass('d-none alert-danger')
+                    .addClass('alert-success')
+                    .text('Opened ' + settings.paper_width + 'mm thermal print preview.');
+            }
+            return $.Deferred().resolve().promise();
+        }
+
+        if ($statusTarget && $statusTarget.length) {
+            $statusTarget
+                .removeClass('d-none alert-success alert-danger')
+                .addClass('alert-info')
+                .text('Sending receipt to ' + settings.host + ':' + settings.port + '...');
+        }
+
+        return $.ajax({
+            url: printThermalUrl,
+            type: 'POST',
+            headers: { Accept: 'application/json' },
+            contentType: 'application/json',
+            data: JSON.stringify(settings),
+            success: function (res) {
+                if ($statusTarget && $statusTarget.length) {
+                    $statusTarget
+                        .removeClass('d-none alert-info alert-success alert-danger')
+                        .addClass(res.status ? 'alert-success' : 'alert-danger')
+                        .text(res.message);
+                }
+                showToast(res.status ? 'Receipt Printed' : 'Printer Error', res.message, res.status ? 'success' : 'error');
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'Unable to reach thermal printer.';
+                if ($statusTarget && $statusTarget.length) {
+                    $statusTarget.removeClass('d-none alert-info alert-success').addClass('alert-danger').text(msg);
+                }
+                showToast('Printer Error', msg, 'error');
+            }
+        });
     }
 
     // Search & filtering
@@ -333,6 +485,13 @@
         renderCatalog();
     });
 
+    $inStockBtn.on('click', function () {
+        inStockOnly = !inStockOnly;
+        $(this).toggleClass('active btn-primary', inStockOnly).toggleClass('btn-light', !inStockOnly);
+        $(this).attr('aria-pressed', String(inStockOnly));
+        renderCatalog();
+    });
+
     $categoryPills.on('click', '.pos-category-pill', function () {
         $categoryPills.find('.pos-category-pill').removeClass('active');
         $(this).addClass('active');
@@ -344,12 +503,14 @@
         $search.val('');
         searchTerm = '';
         $searchClear.addClass('d-none');
+        inStockOnly = false;
+        $inStockBtn.removeClass('active btn-primary').addClass('btn-light').attr('aria-pressed', 'false');
         activeCategoryId = '';
         $categoryPills.find('.pos-category-pill').removeClass('active').first().addClass('active');
         renderCatalog();
     });
 
-    // Catalog card click & keyboard enter
+    // Catalog click & keyboard
     $grid.on('click', '.pos-product-card', function () {
         addToCart($(this).attr('data-product-id'));
     });
@@ -362,13 +523,13 @@
     });
 
     // Cart quantity controls
-    $cartBody.on('click', '.pos-qty-inc', function () {
-        const productId = Number($(this).closest('tr').attr('data-product-id'));
+    $cartList.on('click', '.pos-qty-inc', function () {
+        const productId = Number($(this).closest('.pos-cart-item').attr('data-product-id'));
         addToCart(productId);
     });
 
-    $cartBody.on('click', '.pos-qty-dec', function () {
-        const productId = Number($(this).closest('tr').attr('data-product-id'));
+    $cartList.on('click', '.pos-qty-dec', function () {
+        const productId = Number($(this).closest('.pos-cart-item').attr('data-product-id'));
         const entry = cart.get(productId);
         if (!entry) {
             return;
@@ -385,8 +546,8 @@
         renderCatalog();
     });
 
-    $cartBody.on('change', '.pos-qty-input', function () {
-        const productId = Number($(this).closest('tr').attr('data-product-id'));
+    $cartList.on('change', '.pos-qty-input', function () {
+        const productId = Number($(this).closest('.pos-cart-item').attr('data-product-id'));
         const entry = cart.get(productId);
         if (!entry) {
             return;
@@ -407,8 +568,8 @@
         renderCatalog();
     });
 
-    $cartBody.on('click', '.pos-remove-item', function () {
-        const productId = Number($(this).closest('tr').attr('data-product-id'));
+    $cartList.on('click', '.pos-remove-item', function () {
+        const productId = Number($(this).closest('.pos-cart-item').attr('data-product-id'));
         cart.delete(productId);
         renderCart();
         if (Number($paidAmount.data('auto-synced')) === 1) {
@@ -419,6 +580,39 @@
 
     $clearCartBtn.on('click', function () {
         resetSale();
+    });
+
+    $noteToggle.on('click', function () {
+        $notesWrap.toggleClass('d-none');
+        if (! $notesWrap.hasClass('d-none')) {
+            $notes.focus();
+        }
+    });
+
+    // Payment pills & quick cash chips
+    $payPills.on('click', '.pos-pay-pill', function () {
+        const method = $(this).attr('data-method');
+        $payPills.find('.pos-pay-pill').removeClass('active');
+        $(this).addClass('active');
+        $paymentMethod.val(method);
+        $cashChips.toggleClass('d-none', method !== 'cash');
+
+        if (method !== 'cash') {
+            syncExactPaid();
+        }
+    });
+
+    $cashChips.on('click', '.pos-cash-chip', function () {
+        const tender = $(this).attr('data-tender');
+        if (tender === 'exact') {
+            syncExactPaid();
+            return;
+        }
+
+        const addAmount = parseFloat($(this).attr('data-add')) || 0;
+        const currentBase = Number($paidAmount.data('auto-synced')) === 1 ? 0 : (parseFloat($paidAmount.val()) || 0);
+        $paidAmount.data('auto-synced', 0).val(round2(currentBase + addAmount).toFixed(2));
+        updateSummary();
     });
 
     $discount.on('input change', function () {
@@ -442,6 +636,53 @@
 
     $exactBtn.on('click', function () {
         syncExactPaid();
+    });
+
+    // Thermal Printer settings modal
+    $printerModal.on('show.bs.modal', function () {
+        $printerTestStatus.addClass('d-none').removeClass('alert-success alert-danger alert-info').text('');
+        syncPrinterModalFields();
+    });
+
+    $printerDriver.on('change', togglePrinterDriverFields);
+
+    $('#pos-printer-settings-form').on('submit', function (e) {
+        e.preventDefault();
+        const settings = readPrinterModalForm();
+        savePrinterSettings(settings);
+        $printerModal.modal('hide');
+        showToast('Printer Settings Saved', 'Thermal receipt target updated.', 'success');
+    });
+
+    $testPrintBtn.on('click', function () {
+        const settings = readPrinterModalForm();
+        savePrinterSettings(settings);
+        const orig = $testPrintBtn.html();
+        $testPrintBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Sending...');
+        $printerTestStatus.addClass('d-none').removeClass('alert-success alert-danger alert-info').text('');
+
+        $.ajax({
+            url: config.printerTestUrl,
+            type: 'POST',
+            headers: { Accept: 'application/json' },
+            contentType: 'application/json',
+            data: JSON.stringify(settings),
+            success: function (res) {
+                $printerTestStatus
+                    .removeClass('d-none alert-success alert-danger')
+                    .addClass(res.status ? 'alert-success' : 'alert-danger')
+                    .text(res.message);
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'Unable to send test print.';
+                $printerTestStatus.removeClass('d-none alert-success').addClass('alert-danger').text(msg);
+            },
+            complete: function () {
+                $testPrintBtn.prop('disabled', false).html(orig);
+            }
+        });
     });
 
     // Quick-add Customer modal
@@ -489,27 +730,42 @@
         });
     });
 
-    // Checkout submission
+    // Checkout submission (Complete Sale or Pay & Print)
+    $checkoutPrintBtn.on('click', function () {
+        pendingPrintMode = 'print';
+        $('#pos-checkout-form').trigger('submit');
+    });
+
     $('#pos-checkout-form').on('submit', function (e) {
         e.preventDefault();
         if (isSubmitting || cart.size === 0) {
+            pendingPrintMode = 'none';
             return;
         }
 
         const totals = calculateTotals();
         if (totals.discountExceeds) {
             setCheckoutError('Discount cannot exceed the subtotal.');
+            pendingPrintMode = 'none';
             return;
         }
         if (totals.paid + 0.00001 < totals.grandTotal) {
             setCheckoutError('Paid amount must cover the grand total.');
+            pendingPrintMode = 'none';
             return;
         }
 
+        const shouldPrint = pendingPrintMode === 'print' || loadPrinterSettings().autoprint;
+        pendingPrintMode = 'none';
+
         setCheckoutError('');
         isSubmitting = true;
-        const originalText = $checkoutBtn.html();
-        $checkoutBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Processing Sale...');
+        $checkoutBtn.prop('disabled', true);
+        $checkoutPrintBtn.prop('disabled', true);
+
+        const activeBtn = shouldPrint ? $checkoutPrintBtn : $checkoutBtn;
+        const originalActiveHtml = activeBtn.html();
+        activeBtn.html('<i class="fa fa-spinner fa-spin mr-1"></i> Processing...');
 
         const items = [];
         cart.forEach(function (entry) {
@@ -518,6 +774,8 @@
                 quantity: entry.quantity,
             });
         });
+
+        const settings = loadPrinterSettings();
 
         $.ajax({
             url: config.checkoutUrl,
@@ -535,18 +793,27 @@
             }),
             success: function (response) {
                 if (response && response.status && response.order) {
+                    lastCompletedOrder = response;
+
                     $('#pos-success-order-no').text(response.order.order_no);
                     $('#pos-success-items').text(response.order.total_items);
                     $('#pos-success-total').text('$' + response.order.total);
                     $('#pos-success-paid').text('$' + response.order.paid_amount);
                     $('#pos-success-change').text('$' + response.order.change_amount);
-                    $('#pos-success-receipt-btn').attr('href', response.receipt_url);
+                    $('#pos-success-receipt-btn').attr('href', response.receipt_url + '?width=' + settings.paper_width);
                     $('#pos-success-view-btn').attr('href', response.show_url);
+
+                    const $successPrintStatus = $('#pos-success-print-status');
+                    $successPrintStatus.addClass('d-none').removeClass('alert-success alert-danger alert-info').text('');
 
                     resetSale();
                     refreshCatalogFromServer();
                     $('#pos-checkout-success-modal').modal('show');
                     showToast('Sale Completed', response.message, 'success');
+
+                    if (shouldPrint) {
+                        sendThermalPrintJob(response.print_thermal_url, response.receipt_url, $successPrintStatus);
+                    }
                 }
             },
             error: function (xhr) {
@@ -561,13 +828,24 @@
             },
             complete: function () {
                 isSubmitting = false;
-                $checkoutBtn.html(originalText);
+                activeBtn.html(originalActiveHtml);
                 updateSummary();
             }
         });
     });
 
-    // Initialize Select2 & initial view
+    $('#pos-success-thermal-btn').on('click', function () {
+        if (!lastCompletedOrder) {
+            return;
+        }
+        sendThermalPrintJob(
+            lastCompletedOrder.print_thermal_url,
+            lastCompletedOrder.receipt_url,
+            $('#pos-success-print-status')
+        );
+    });
+
+    // Initialize Select2 & initial POS state
     $customerSelect.select2({
         placeholder: 'Walk-in / Guest Customer',
         allowClear: true,
@@ -575,6 +853,7 @@
     });
 
     $paidAmount.data('auto-synced', 1);
+    renderPrinterSummary();
     renderCatalog();
     renderCart();
 })(jQuery);

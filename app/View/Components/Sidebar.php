@@ -33,8 +33,29 @@ class Sidebar extends Component
     public function activeNav(): string
     {
         $activeNav = Route::currentRouteName() ?? '';
+        if ($activeNav === 'orders.create') {
+            return 'pos';
+        }
+
         $parts = explode('.', $activeNav);
 
         return $parts[0] ?? '';
+    }
+
+    public function isNavActive(string $nav): bool
+    {
+        if ($nav === 'pos') {
+            return request()->routeIs('orders.create');
+        }
+
+        if ($nav === 'orders') {
+            return request()->routeIs('orders.*') && ! request()->routeIs('orders.create');
+        }
+
+        if ($nav === 'dashboard') {
+            return request()->routeIs('dashboard');
+        }
+
+        return request()->routeIs("{$nav}.*");
     }
 }

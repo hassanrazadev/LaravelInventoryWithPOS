@@ -15,13 +15,15 @@
         <!-- END TOP-LEFT TOOLBAR-->
         <!-- START TOP-RIGHT TOOLBAR-->
         <ul class="nav navbar-toolbar">
-            @can('create order')
-                <li class="mr-2">
-                    <a href="{{ route('orders.create') }}" class="btn btn-primary btn-sm text-white px-3">
-                        <i class="fa fa-shopping-basket mr-1"></i> POS / New Order
-                    </a>
-                </li>
-            @endcan
+            @unless(request()->routeIs('orders.create'))
+                @can('create order')
+                    <li class="mr-2">
+                        <a href="{{ route('orders.create') }}" class="btn btn-primary btn-sm text-white px-3">
+                            <i class="fa fa-calculator mr-1"></i> POS Terminal
+                        </a>
+                    </li>
+                @endcan
+            @endunless
             <li class="dropdown dropdown-user">
                 <a class="nav-link dropdown-toggle link d-flex align-items-center" data-toggle="dropdown" href="javascript:;">
                     <span class="ims-avatar ims-avatar-sm mr-2">{{ $user['initials'] }}</span>
