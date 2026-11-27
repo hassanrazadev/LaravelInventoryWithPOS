@@ -19,10 +19,11 @@ class Supplier extends Model{
     // ===================== ORM Definition START ===================== //
 
     /**
-     * @return HasMany
+     * Purchases supplied by this vendor.
      */
-    public function products(){
-        return $this->hasMany(Product::class);
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
     }
 
     /**

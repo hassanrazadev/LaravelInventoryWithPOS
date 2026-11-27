@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
@@ -271,8 +273,9 @@ class DemoDataSeeder extends Seeder
             ],
         ];
 
+        $customers = [];
         foreach ($customersData as $item) {
-            Customer::firstOrCreate(
+            $customers[$item['email']] = Customer::withTrashed()->firstOrCreate(
                 ['email' => $item['email']],
                 [
                     'created_by' => $admin->id,
@@ -353,6 +356,86 @@ class DemoDataSeeder extends Seeder
                     'expense_amount' => $item['expense_amount'],
                 ]
             );
+        }
+
+        if (Order::withTrashed()->count() === 0) {
+            $ordersData = [
+                [
+                    'order_no' => 'ORD-DEMO-0001',
+                    'customer' => 'ayesha@example.com',
+                    'created_by' => $cashier->id,
+                    'payment_method' => 'cash',
+                    'discount' => 8.48,
+                    'tax' => 0.00,
+                    'paid_amount' => 300.00,
+                    'notes' => 'In-store counter checkout',
+                    'items' => [
+                        ['slug' => 'logitech-mx-master-3s-mouse', 'quantity' => 2],
+                        ['slug' => 'sandisk-ultra-128gb-usb-flash', 'quantity' => 3],
+                    ],
+                ],
+                [
+                    'order_no' => 'ORD-DEMO-0002',
+                    'customer' => 'usman@example.com',
+                    'created_by' => $cashier->id,
+                    'payment_method' => 'card',
+                    'discount' => 0.00,
+                    'tax' => 0.00,
+                    'paid_amount' => 119.00,
+                    'notes' => 'Corporate card sale',
+                    'items' => [
+                        ['slug' => 'keychron-k2-mechanical-keyboard', 'quantity' => 1],
+                        ['slug' => 'a4-copy-paper-ream-500-sheets', 'quantity' => 4],
+                    ],
+                ],
+            ];
+
+            DB::transaction(function () use ($ordersData, $customers, $products): void {
+                foreach ($ordersData as $spec) {
+                    $subTotal = 0.0;
+                    $totalItems = 0;
+
+                    foreach ($spec['items'] as $line) {
+                        $product = $products[$line['slug']];
+                        $subTotal = round($subTotal + round((float) $product->sale_price * $line['quantity'], 2), 2);
+                        $totalItems += $line['quantity'];
+                    }
+
+                    $total = round($subTotal - $spec['discount'] + $spec['tax'], 2);
+                    $changeAmount = round(max(0, $spec['paid_amount'] - $total), 2);
+
+                    $order = Order::create([
+                        'customer_id' => $customers[$spec['customer']]->id,
+                        'created_by' => $spec['created_by'],
+                        'order_no' => $spec['order_no'],
+                        'total_items' => $totalItems,
+                        'sub_total' => $subTotal,
+                        'tax' => $spec['tax'],
+                        'discount' => $spec['discount'],
+                        'total' => $total,
+                        'payment_method' => $spec['payment_method'],
+                        'paid_amount' => $spec['paid_amount'],
+                        'change_amount' => $changeAmount,
+                        'status' => Order::STATUS_COMPLETED,
+                        'notes' => $spec['notes'],
+                    ]);
+
+                    foreach ($spec['items'] as $line) {
+                        $product = $products[$line['slug']];
+                        $unitPrice = round((float) $product->sale_price, 2);
+
+                        OrderDetail::create([
+                            'order_id' => $order->id,
+                            'product_id' => $product->id,
+                            'quantity' => $line['quantity'],
+                            'unit_price' => $unitPrice,
+                            'sub_total' => round($unitPrice * $line['quantity'], 2),
+                        ]);
+
+                        $product->decrement('quantity', $line['quantity']);
+                    }
+                }
+            });
         }
     }
 

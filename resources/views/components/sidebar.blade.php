@@ -112,6 +112,54 @@
                 </li>
             @endcanany
 
+            @if(auth()->user()->canAny(['create supplier', 'read supplier', 'create customer', 'read customer']))
+                <li class="heading">CONTACTS</li>
+            @endif
+
+            @canany(['create supplier', 'read supplier'])
+                <li class="{{ $activeNav == 'suppliers' ? 'active' : '' }}">
+                    <a href="javascript:;">
+                        <i class="sidebar-item-icon fa fa-truck"></i>
+                        <span class="nav-label">Suppliers</span>
+                        <i class="fa fa-angle-left arrow"></i>
+                    </a>
+                    <ul class="nav-2-level collapse {{ $activeNav == 'suppliers' ? 'in' : '' }}">
+                        @can('create supplier')
+                            <li>
+                                <a class="{{ url()->current() == route('suppliers.create') ? 'active' : '' }}" href="{{ route('suppliers.create') }}">Add Supplier</a>
+                            </li>
+                        @endcan
+                        @can('read supplier')
+                            <li>
+                                <a class="{{ url()->current() == route('suppliers.index') ? 'active' : '' }}" href="{{ route('suppliers.index') }}">Manage Suppliers</a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+            @canany(['create customer', 'read customer'])
+                <li class="{{ $activeNav == 'customers' ? 'active' : '' }}">
+                    <a href="javascript:;">
+                        <i class="sidebar-item-icon fa fa-address-book"></i>
+                        <span class="nav-label">Customers</span>
+                        <i class="fa fa-angle-left arrow"></i>
+                    </a>
+                    <ul class="nav-2-level collapse {{ $activeNav == 'customers' ? 'in' : '' }}">
+                        @can('create customer')
+                            <li>
+                                <a class="{{ url()->current() == route('customers.create') ? 'active' : '' }}" href="{{ route('customers.create') }}">Add Customer</a>
+                            </li>
+                        @endcan
+                        @can('read customer')
+                            <li>
+                                <a class="{{ url()->current() == route('customers.index') ? 'active' : '' }}" href="{{ route('customers.index') }}">Manage Customers</a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
             @if(auth()->user()->canAny(['create user', 'read user', 'create role', 'read role', 'create permission', 'read permission']))
                 <li class="heading">ADMINISTRATION</li>
             @endif

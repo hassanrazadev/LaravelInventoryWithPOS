@@ -124,6 +124,8 @@ class RolePermissionTest extends TestCase
         $this->actingAs($unprivileged)->get(route('purchases.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('purchases.productForm', 0))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('orders.create'))->assertStatus(403);
+        $this->actingAs($unprivileged)->get(route('suppliers.index'))->assertStatus(403);
+        $this->actingAs($unprivileged)->get(route('customers.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('users.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('roles.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('permissions.index'))->assertStatus(403);
@@ -140,9 +142,18 @@ class RolePermissionTest extends TestCase
         $this->actingAs($manager)->get(route('categories.index'))->assertStatus(200);
         $this->actingAs($manager)->get(route('products.index'))->assertStatus(200);
         $this->actingAs($manager)->get(route('purchases.index'))->assertStatus(200);
+        $this->actingAs($manager)->get(route('suppliers.index'))->assertStatus(200);
+        $this->actingAs($manager)->get(route('customers.index'))->assertStatus(200);
         $this->actingAs($manager)->get(route('orders.create'))->assertStatus(200);
         $this->actingAs($manager)->get(route('users.index'))->assertStatus(403);
         $this->actingAs($manager)->get(route('roles.index'))->assertStatus(403);
         $this->actingAs($manager)->get(route('permissions.index'))->assertStatus(403);
+
+        $cashier = User::factory()->create();
+        $cashier->assignRole('cashier');
+
+        $this->actingAs($cashier)->get(route('orders.create'))->assertStatus(200);
+        $this->actingAs($cashier)->get(route('customers.index'))->assertStatus(200);
+        $this->actingAs($cashier)->get(route('suppliers.index'))->assertStatus(403);
     }
 }
