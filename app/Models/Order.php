@@ -75,6 +75,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
     // ===================== ORM Definition END ===================== //
 
     /**

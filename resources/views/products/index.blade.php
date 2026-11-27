@@ -29,6 +29,7 @@
                 <div class="ibox-title">Products</div>
             </div>
             <div class="ibox-body">
+                <div class="table-responsive">
                 <table class="table table-striped table-bordered table-hover" id="category-table" cellspacing="0" width="100%">
                     <thead>
                     <tr>
@@ -76,6 +77,7 @@
                     @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

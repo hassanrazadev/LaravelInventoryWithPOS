@@ -943,6 +943,49 @@ select.form-control:not([multiple]):not([size]) {
     letter-spacing: -0.02em;
 }
 
+.ims-kpi-sub {
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.ims-kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.ims-kpi-icon-primary {
+    background: rgba(79, 70, 229, 0.12);
+    color: var(--ims-primary);
+}
+
+.ims-kpi-icon-info {
+    background: rgba(14, 165, 233, 0.14);
+    color: var(--ims-info);
+}
+
+.ims-kpi-icon-warning {
+    background: rgba(245, 158, 11, 0.16);
+    color: #d97706;
+}
+
+.ims-kpi-icon-danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--ims-danger);
+}
+
+.ims-color-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+}
+
 .pos-category-pills {
     display: flex;
     flex-wrap: wrap;

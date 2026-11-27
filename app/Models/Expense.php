@@ -2,30 +2,50 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Expense extends Model{
+class Expense extends Model
+{
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'expense_name', 'created_by', 'updated_by', 'expense_amount'
+    public const CATEGORIES = [
+        'Rent',
+        'Utilities',
+        'Payroll',
+        'Supplies',
+        'Marketing',
+        'Maintenance',
+        'Other',
     ];
 
-    // ===================== ORM Definition START ===================== //
+    protected $fillable = [
+        'expense_name',
+        'category',
+        'expense_amount',
+        'expense_date',
+        'notes',
+        'created_by',
+        'updated_by',
+    ];
 
-    /**
-     * @return BelongsTo
-     */
-    public function createdBy(){
+    protected function casts(): array
+    {
+        return [
+            'expense_amount' => 'decimal:2',
+            'expense_date' => 'date',
+        ];
+    }
+
+    public function createdBy(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * @return BelongsTo
-     */
-    public function updatedBy(){
+    public function updatedBy(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'updated_by');
     }
-
-    // ===================== ORM Definition END ===================== //
 }

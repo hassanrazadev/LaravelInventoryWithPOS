@@ -126,6 +126,8 @@ class RolePermissionTest extends TestCase
         $this->actingAs($unprivileged)->get(route('orders.create'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('suppliers.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('customers.index'))->assertStatus(403);
+        $this->actingAs($unprivileged)->get(route('expenses.index'))->assertStatus(403);
+        $this->actingAs($unprivileged)->get(route('returns.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('users.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('roles.index'))->assertStatus(403);
         $this->actingAs($unprivileged)->get(route('permissions.index'))->assertStatus(403);
@@ -144,6 +146,8 @@ class RolePermissionTest extends TestCase
         $this->actingAs($manager)->get(route('purchases.index'))->assertStatus(200);
         $this->actingAs($manager)->get(route('suppliers.index'))->assertStatus(200);
         $this->actingAs($manager)->get(route('customers.index'))->assertStatus(200);
+        $this->actingAs($manager)->get(route('expenses.index'))->assertStatus(200);
+        $this->actingAs($manager)->get(route('returns.index'))->assertStatus(200);
         $this->actingAs($manager)->get(route('orders.create'))->assertStatus(200);
         $this->actingAs($manager)->get(route('users.index'))->assertStatus(403);
         $this->actingAs($manager)->get(route('roles.index'))->assertStatus(403);
@@ -155,5 +159,7 @@ class RolePermissionTest extends TestCase
         $this->actingAs($cashier)->get(route('orders.create'))->assertStatus(200);
         $this->actingAs($cashier)->get(route('customers.index'))->assertStatus(200);
         $this->actingAs($cashier)->get(route('suppliers.index'))->assertStatus(403);
+        $this->actingAs($cashier)->get(route('expenses.index'))->assertStatus(403);
+        $this->actingAs($cashier)->get(route('returns.index'))->assertStatus(403);
     }
 }

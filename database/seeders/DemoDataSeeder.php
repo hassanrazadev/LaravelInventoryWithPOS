@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\SaleReturn;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -343,17 +344,19 @@ class DemoDataSeeder extends Seeder
         }
 
         $expensesData = [
-            ['expense_name' => 'Store Rent', 'expense_amount' => 1200.00],
-            ['expense_name' => 'Electricity Bill', 'expense_amount' => 185.50],
-            ['expense_name' => 'Internet Service', 'expense_amount' => 65.00],
+            ['expense_name' => 'Store Rent', 'category' => 'Rent', 'expense_amount' => 1200.00],
+            ['expense_name' => 'Electricity Bill', 'category' => 'Utilities', 'expense_amount' => 185.50],
+            ['expense_name' => 'Internet Service', 'category' => 'Utilities', 'expense_amount' => 65.00],
         ];
 
         foreach ($expensesData as $item) {
-            Expense::firstOrCreate(
+            Expense::withTrashed()->firstOrCreate(
                 ['expense_name' => $item['expense_name']],
                 [
+                    'category' => $item['category'],
                     'created_by' => $admin->id,
                     'expense_amount' => $item['expense_amount'],
+                    'expense_date' => now()->toDateString(),
                 ]
             );
         }
@@ -436,6 +439,27 @@ class DemoDataSeeder extends Seeder
                     }
                 }
             });
+        }
+
+        if (SaleReturn::withTrashed()->count() === 0) {
+            $demoOrder = Order::where('order_no', 'ORD-DEMO-0001')->first();
+            $returnedProduct = $products['sandisk-ultra-128gb-usb-flash'] ?? null;
+
+            if ($demoOrder && $returnedProduct) {
+                DB::transaction(function () use ($demoOrder, $returnedProduct, $manager): void {
+                    SaleReturn::create([
+                        'order_id' => $demoOrder->id,
+                        'product_id' => $returnedProduct->id,
+                        'quantity' => 1,
+                        'return_price' => 19.50,
+                        'reason' => 'Customer exchanged for higher capacity',
+                        'restock' => true,
+                        'created_by' => $manager->id,
+                    ]);
+
+                    $returnedProduct->increment('quantity', 1);
+                });
+            }
         }
     }
 
