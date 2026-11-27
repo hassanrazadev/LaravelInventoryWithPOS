@@ -267,7 +267,7 @@
             function loadPrinterSettings() {
                 let saved = {};
                 try {
-                    saved = JSON.parse(localStorage.getItem('ims_pos_printer_settings') || '{}');
+                    saved = JSON.parse(localStorage.getItem('ims_pos_printer_settings_v2') || '{}');
                 } catch (e) {
                     saved = {};
                 }
@@ -276,10 +276,13 @@
                 return {
                     driver: driver,
                     host: saved.host || defaultPrinter.host || '127.0.0.1',
-                    port: saved.port || defaultPrinter.port || 8000,
+                    port: saved.port || defaultPrinter.port || 9100,
                     http_path: saved.http_path || defaultPrinter.http_path || '/',
                     http_format: saved.http_format || defaultPrinter.http_format || 'escpos',
-                    paper_width: paperWidth
+                    paper_width: paperWidth,
+                    open_cash_drawer: saved.open_cash_drawer !== undefined
+                        ? Boolean(saved.open_cash_drawer)
+                        : (defaultPrinter.open_cash_drawer !== undefined ? Boolean(defaultPrinter.open_cash_drawer) : false)
                 };
             }
 

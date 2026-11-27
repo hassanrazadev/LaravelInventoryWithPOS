@@ -17,7 +17,7 @@
         <div class="pos-topbar-actions">
             <button type="button" class="btn btn-light border btn-sm pos-printer-pill" id="pos-printer-settings-btn" data-toggle="modal" data-target="#pos-printer-settings-modal">
                 <i class="fa fa-print text-primary mr-1"></i>
-                <span id="pos-printer-summary">Printer: {{ $printerConfig['host'] ?? '127.0.0.1' }}:{{ $printerConfig['port'] ?? 8000 }} · {{ $printerConfig['paper_width'] ?? 80 }}mm</span>
+                <span id="pos-printer-summary">Printer: {{ $printerConfig['host'] ?? '127.0.0.1' }}:{{ $printerConfig['port'] ?? 9100 }} · {{ $printerConfig['paper_width'] ?? 80 }}mm</span>
             </button>
             @can('read order')
                 <a href="{{ route('orders.index') }}" class="btn btn-light border btn-sm">
@@ -242,18 +242,19 @@
                         <div id="pos-printer-network-fields">
                             <div class="row">
                                 <div class="col-sm-8">
-                                    <div class="form-group">
+                                    <div class="form-group mb-1">
                                         <label for="printer_host">Printer Host / IP</label>
                                         <input type="text" id="printer_host" class="form-control" placeholder="127.0.0.1">
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
-                                    <div class="form-group">
+                                    <div class="form-group mb-1">
                                         <label for="printer_port">Port</label>
-                                        <input type="number" id="printer_port" min="1" max="65535" class="form-control" placeholder="8000">
+                                        <input type="number" id="printer_port" min="1" max="65535" class="form-control" placeholder="9100">
                                     </div>
                                 </div>
                             </div>
+                            <small class="form-text text-muted mb-3">Standard ESC/POS TCP port is 9100 (Virtual Printer Suite UI on :8000 receives ESC/POS jobs on 127.0.0.1:9100).</small>
                             <div class="row d-none" id="pos-printer-http-fields">
                                 <div class="col-sm-6">
                                     <div class="form-group">
@@ -290,6 +291,12 @@
                                     </label>
                                 </div>
                             </div>
+                        </div>
+                        <div class="form-group mt-2 mb-0" id="pos-printer-drawer-field">
+                            <label class="ui-checkbox ui-checkbox-primary mb-0">
+                                <input type="checkbox" id="printer_open_drawer">
+                                <span class="input-span"></span>Open cash drawer on Cash sale (ESC/POS Pin 2)
+                            </label>
                         </div>
                     </div>
                     <div class="modal-footer d-flex justify-content-between">

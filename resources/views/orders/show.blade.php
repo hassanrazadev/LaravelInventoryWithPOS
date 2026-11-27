@@ -189,17 +189,18 @@
                 const url = $btn.attr('data-url');
                 let saved = {};
                 try {
-                    saved = JSON.parse(localStorage.getItem('ims_pos_printer_settings') || '{}');
+                    saved = JSON.parse(localStorage.getItem('ims_pos_printer_settings_v2') || '{}');
                 } catch (e) {
                     saved = {};
                 }
                 const payload = {
                     driver: saved.driver === 'http' ? 'http' : (defaultPrinter.driver === 'http' ? 'http' : 'tcp'),
                     host: saved.host || defaultPrinter.host || '127.0.0.1',
-                    port: saved.port || defaultPrinter.port || 8000,
+                    port: saved.port || defaultPrinter.port || 9100,
                     http_path: saved.http_path || defaultPrinter.http_path || '/',
                     http_format: saved.http_format || defaultPrinter.http_format || 'escpos',
-                    paper_width: Number(saved.paper_width || defaultPrinter.paper_width || 80)
+                    paper_width: Number(saved.paper_width || defaultPrinter.paper_width || 80),
+                    open_cash_drawer: false
                 };
 
                 const orig = $btn.html();

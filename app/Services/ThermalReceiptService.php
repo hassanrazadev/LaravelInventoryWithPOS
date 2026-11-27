@@ -24,6 +24,8 @@ class ThermalReceiptService
 
     private const PARTIAL_CUT = "\x1D\x56\x42\x00";
 
+    private const CASH_DRAWER_KICK = "\x1B\x70\x00\x19\xFA";
+
     public function columnsForWidth(int $paperWidth): int
     {
         return $paperWidth === 58 ? 32 : 48;
@@ -64,7 +66,7 @@ class ThermalReceiptService
         return $isPrivate;
     }
 
-    public function buildEscPosPayload(Order $order, int $paperWidth = 80): string
+    public function buildEscPosPayload(Order $order, int $paperWidth = 80, bool $openCashDrawer = false): string
     {
         $cols = $this->columnsForWidth($paperWidth);
         $divider = str_repeat('-', $cols)."\n";
@@ -125,6 +127,9 @@ class ThermalReceiptService
         $payload .= $divider;
         $payload .= self::ALIGN_CENTER.$footer."\n\n\n\n";
         $payload .= self::ALIGN_LEFT.self::PARTIAL_CUT;
+        if ($openCashDrawer) {
+            $payload .= self::CASH_DRAWER_KICK;
+        }
 
         return $payload;
     }
@@ -187,7 +192,7 @@ class ThermalReceiptService
         return $lines;
     }
 
-    public function buildTestPayload(int $paperWidth = 80, string $host = '127.0.0.1', int $port = 8000): string
+    public function buildTestPayload(int $paperWidth = 80, string $host = '127.0.0.1', int $port = 9100): string
     {
         $cols = $this->columnsForWidth($paperWidth);
         $divider = str_repeat('-', $cols)."\n";
@@ -207,7 +212,7 @@ class ThermalReceiptService
         return $payload;
     }
 
-    public function buildPlainTextTest(int $paperWidth = 80, string $host = '127.0.0.1', int $port = 8000): string
+    public function buildPlainTextTest(int $paperWidth = 80, string $host = '127.0.0.1', int $port = 9100): string
     {
         $cols = $this->columnsForWidth($paperWidth);
         $divider = str_repeat('-', $cols)."\n";
@@ -235,9 +240,11 @@ class ThermalReceiptService
             ];
         }
 
+        $shouldKickDrawer = $resolved['open_cash_drawer'] && $order->payment_method === 'cash';
+
         $payload = ($resolved['driver'] === 'http' && $resolved['http_format'] === 'text')
             ? $this->buildPlainTextReceipt($order, $resolved['paper_width'])
-            : $this->buildEscPosPayload($order, $resolved['paper_width']);
+            : $this->buildEscPosPayload($order, $resolved['paper_width'], $shouldKickDrawer);
 
         return $this->dispatch($payload, $resolved, "Receipt {$order->order_no} sent to printer");
     }
@@ -267,10 +274,13 @@ class ThermalReceiptService
         return [
             'driver' => ($options['driver'] ?? $defaults['driver'] ?? 'tcp') === 'http' ? 'http' : 'tcp',
             'host' => trim((string) ($options['host'] ?? $defaults['host'] ?? '127.0.0.1')),
-            'port' => max(1, min(65535, (int) ($options['port'] ?? $defaults['port'] ?? 8000))),
+            'port' => max(1, min(65535, (int) ($options['port'] ?? $defaults['port'] ?? 9100))),
             'http_path' => '/'.ltrim((string) ($options['http_path'] ?? $defaults['http_path'] ?? '/'), '/'),
             'http_format' => ($options['http_format'] ?? $defaults['http_format'] ?? 'escpos') === 'text' ? 'text' : 'escpos',
             'paper_width' => $paperWidth === 58 ? 58 : 80,
+            'open_cash_drawer' => array_key_exists('open_cash_drawer', $options)
+                ? (bool) $options['open_cash_drawer']
+                : (bool) ($defaults['open_cash_drawer'] ?? true),
             'timeout' => max(1, min(15, (int) ($options['timeout'] ?? $defaults['timeout'] ?? 3))),
         ];
     }

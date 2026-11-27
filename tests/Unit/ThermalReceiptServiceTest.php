@@ -45,12 +45,16 @@ class ThermalReceiptServiceTest extends TestCase
         $escPos80 = $service->buildEscPosPayload($order, 80);
         $this->assertStringStartsWith("\x1B\x40", $escPos80);
         $this->assertStringEndsWith("\x1D\x56\x42\x00", $escPos80);
+        $this->assertStringNotContainsString("\x1B\x70\x00\x19\xFA", $escPos80);
         $this->assertStringContainsString(str_repeat('-', 48)."\n", $escPos80);
         $this->assertStringContainsString('ORD-2026-0001', $escPos80);
         $this->assertStringContainsString('Wireless Scanner', $escPos80);
         $this->assertStringContainsString('$145.00', $escPos80);
         $this->assertStringContainsString('Paid (Cash)', $escPos80);
         $this->assertStringContainsString('Note: Counter 1 urgent', $escPos80);
+
+        $escPosWithDrawer = $service->buildEscPosPayload($order, 80, true);
+        $this->assertStringEndsWith("\x1D\x56\x42\x00\x1B\x70\x00\x19\xFA", $escPosWithDrawer);
 
         $escPos58 = $service->buildEscPosPayload($order, 58);
         $this->assertStringContainsString(str_repeat('-', 32)."\n", $escPos58);
@@ -68,14 +72,14 @@ class ThermalReceiptServiceTest extends TestCase
     {
         $service = new ThermalReceiptService;
 
-        $payload80 = $service->buildTestPayload(80, '127.0.0.1', 8000);
+        $payload80 = $service->buildTestPayload(80, '127.0.0.1', 9100);
         $this->assertStringStartsWith("\x1B\x40", $payload80);
         $this->assertStringEndsWith("\x1D\x56\x42\x00", $payload80);
         $this->assertStringContainsString('THERMAL PRINTER TEST', $payload80);
-        $this->assertStringContainsString('127.0.0.1:8000', $payload80);
+        $this->assertStringContainsString('127.0.0.1:9100', $payload80);
         $this->assertStringContainsString('80mm (48 cols)', $payload80);
 
-        $payload58 = $service->buildTestPayload(58, '127.0.0.1', 8000);
+        $payload58 = $service->buildTestPayload(58, '127.0.0.1', 9100);
         $this->assertStringContainsString('58mm (32 cols)', $payload58);
         $this->assertStringContainsString(str_repeat('-', 32)."\n", $payload58);
     }
@@ -83,9 +87,9 @@ class ThermalReceiptServiceTest extends TestCase
     public function test_print_order_and_print_test_via_http_driver_using_fake(): void
     {
         Http::fake([
-            'http://127.0.0.1:8000/fail' => Http::response('Printer Busy', 500),
-            'http://127.0.0.1:8000/*' => Http::response('OK', 200),
-            'http://127.0.0.1:8000' => Http::response('OK', 200),
+            'http://127.0.0.1:9100/fail' => Http::response('Printer Busy', 500),
+            'http://127.0.0.1:9100/*' => Http::response('OK', 200),
+            'http://127.0.0.1:9100' => Http::response('OK', 200),
         ]);
 
         $service = new ThermalReceiptService;
@@ -94,10 +98,11 @@ class ThermalReceiptServiceTest extends TestCase
         $escPosResult = $service->printOrder($order, [
             'driver' => 'http',
             'host' => '127.0.0.1',
-            'port' => 8000,
+            'port' => 9100,
             'http_path' => '/',
             'http_format' => 'escpos',
             'paper_width' => 80,
+            'open_cash_drawer' => true,
         ]);
 
         $this->assertTrue($escPosResult['status']);
@@ -106,7 +111,7 @@ class ThermalReceiptServiceTest extends TestCase
         $textResult = $service->printOrder($order, [
             'driver' => 'http',
             'host' => '127.0.0.1',
-            'port' => 8000,
+            'port' => 9100,
             'http_path' => '/print',
             'http_format' => 'text',
             'paper_width' => 58,
@@ -118,7 +123,7 @@ class ThermalReceiptServiceTest extends TestCase
         $testResult = $service->printTest([
             'driver' => 'http',
             'host' => '127.0.0.1',
-            'port' => 8000,
+            'port' => 9100,
             'http_path' => '/',
             'http_format' => 'escpos',
             'paper_width' => 80,
@@ -129,7 +134,7 @@ class ThermalReceiptServiceTest extends TestCase
         $failResult = $service->printTest([
             'driver' => 'http',
             'host' => '127.0.0.1',
-            'port' => 8000,
+            'port' => 9100,
             'http_path' => '/fail',
             'http_format' => 'escpos',
         ]);
@@ -137,10 +142,11 @@ class ThermalReceiptServiceTest extends TestCase
         $this->assertFalse($failResult['status']);
         $this->assertStringContainsString('HTTP 500', $failResult['message']);
 
-        Http::assertSent(fn (HttpClientRequest $req) => $req->url() === 'http://127.0.0.1:8000/'
-            && str_contains($req->header('Content-Type')[0] ?? '', 'application/octet-stream'));
+        Http::assertSent(fn (HttpClientRequest $req) => $req->url() === 'http://127.0.0.1:9100/'
+            && str_contains($req->header('Content-Type')[0] ?? '', 'application/octet-stream')
+            && (! str_contains($req->body(), 'ORD-2026-0001') || str_contains($req->body(), "\x1B\x70\x00\x19\xFA")));
 
-        Http::assertSent(fn (HttpClientRequest $req) => $req->url() === 'http://127.0.0.1:8000/print'
+        Http::assertSent(fn (HttpClientRequest $req) => $req->url() === 'http://127.0.0.1:9100/print'
             && str_contains($req->header('Content-Type')[0] ?? '', 'text/plain')
             && str_contains($req->body(), 'ORD-2026-0001'));
     }
@@ -155,12 +161,12 @@ class ThermalReceiptServiceTest extends TestCase
         $orderRes = $service->printOrder($order, [
             'driver' => 'http',
             'host' => '8.8.8.8',
-            'port' => 8000,
+            'port' => 9100,
         ]);
         $testRes = $service->printTest([
             'driver' => 'http',
             'host' => '169.254.169.254',
-            'port' => 8000,
+            'port' => 9100,
         ]);
 
         $this->assertFalse($orderRes['status']);

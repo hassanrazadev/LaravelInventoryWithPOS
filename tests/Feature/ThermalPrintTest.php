@@ -82,11 +82,11 @@ class ThermalPrintTest extends TestCase
                 ->once()
                 ->withArgs(fn (array $options) => $options['driver'] === 'tcp'
                     && $options['host'] === '127.0.0.1'
-                    && (int) $options['port'] === 8000
+                    && (int) $options['port'] === 9100
                     && (int) $options['paper_width'] === 80)
                 ->andReturn([
                     'status' => true,
-                    'message' => 'Test receipt sent to printer (127.0.0.1:8000, 140 bytes).',
+                    'message' => 'Test receipt sent to printer (127.0.0.1:9100, 140 bytes).',
                     'bytes' => 140,
                 ]);
 
@@ -95,11 +95,12 @@ class ThermalPrintTest extends TestCase
                 ->withArgs(fn (Order $passedOrder, array $options) => $passedOrder->id === $order->id
                     && $options['driver'] === 'http'
                     && $options['host'] === '192.168.1.25'
-                    && (int) $options['port'] === 8000
-                    && (int) $options['paper_width'] === 58)
+                    && (int) $options['port'] === 9100
+                    && (int) $options['paper_width'] === 58
+                    && $options['open_cash_drawer'] === false)
                 ->andReturn([
                     'status' => true,
-                    'message' => "Receipt {$order->order_no} sent to printer (192.168.1.25:8000, 260 bytes).",
+                    'message' => "Receipt {$order->order_no} sent to printer (192.168.1.25:9100, 260 bytes).",
                     'bytes' => 260,
                 ]);
         });
@@ -108,7 +109,7 @@ class ThermalPrintTest extends TestCase
             ->postJson(route('orders.printer.test'), [
                 'driver' => 'tcp',
                 'host' => '127.0.0.1',
-                'port' => 8000,
+                'port' => 9100,
                 'paper_width' => 80,
             ])
             ->assertStatus(200)
@@ -119,10 +120,11 @@ class ThermalPrintTest extends TestCase
             ->postJson(route('orders.printThermal', $order->id), [
                 'driver' => 'http',
                 'host' => '192.168.1.25',
-                'port' => 8000,
+                'port' => 9100,
                 'http_path' => '/print',
                 'http_format' => 'text',
                 'paper_width' => 58,
+                'open_cash_drawer' => false,
             ])
             ->assertStatus(200)
             ->assertJsonPath('status', true)
@@ -143,7 +145,7 @@ class ThermalPrintTest extends TestCase
             ->postJson(route('orders.printer.test'), [
                 'driver' => 'tcp',
                 'host' => '169.254.169.254',
-                'port' => 8000,
+                'port' => 9100,
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['host']);
@@ -166,11 +168,11 @@ class ThermalPrintTest extends TestCase
         $unprivileged = User::factory()->create();
 
         $this->actingAs($unprivileged)
-            ->postJson(route('orders.printer.test'), ['driver' => 'tcp', 'host' => '127.0.0.1', 'port' => 8000])
+            ->postJson(route('orders.printer.test'), ['driver' => 'tcp', 'host' => '127.0.0.1', 'port' => 9100])
             ->assertStatus(403);
 
         $this->actingAs($unprivileged)
-            ->postJson(route('orders.printThermal', $order->id), ['driver' => 'tcp', 'host' => '127.0.0.1', 'port' => 8000])
+            ->postJson(route('orders.printThermal', $order->id), ['driver' => 'tcp', 'host' => '127.0.0.1', 'port' => 9100])
             ->assertStatus(403);
     }
 

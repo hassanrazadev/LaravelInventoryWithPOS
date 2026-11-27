@@ -2,7 +2,7 @@
     'use strict';
 
     const config = window.POS_CONFIG || {};
-    const PRINTER_STORAGE_KEY = 'ims_pos_printer_settings';
+    const PRINTER_STORAGE_KEY = 'ims_pos_printer_settings_v2';
 
     let catalog = Array.isArray(config.products) ? config.products : [];
     const cart = new Map();
@@ -52,6 +52,8 @@
     const $printerHttpFormat = $('#printer_http_format');
     const $printerPaperWidth = $('#printer_paper_width');
     const $printerAutoprint = $('#printer_autoprint');
+    const $printerOpenDrawer = $('#printer_open_drawer');
+    const $printerDrawerField = $('#pos-printer-drawer-field');
     const $printerNetworkFields = $('#pos-printer-network-fields');
     const $printerHttpFields = $('#pos-printer-http-fields');
     const $printerTestStatus = $('#pos-printer-test-status');
@@ -90,10 +92,13 @@
         return {
             driver: driver,
             host: saved.host || defaults.host || '127.0.0.1',
-            port: Number(saved.port || defaults.port || 8000),
+            port: Number(saved.port || defaults.port || 9100),
             http_path: saved.http_path || defaults.http_path || '/',
             http_format: saved.http_format === 'text' ? 'text' : (defaults.http_format === 'text' ? 'text' : 'escpos'),
             paper_width: Number(saved.paper_width || defaults.paper_width || 80) === 58 ? 58 : 80,
+            open_cash_drawer: saved.open_cash_drawer !== undefined
+                ? Boolean(saved.open_cash_drawer)
+                : (defaults.open_cash_drawer !== undefined ? Boolean(defaults.open_cash_drawer) : true),
             autoprint: Boolean(saved.autoprint),
         };
     }
@@ -126,6 +131,7 @@
         $printerHttpFormat.val(s.http_format);
         $printerPaperWidth.val(String(s.paper_width));
         $printerAutoprint.prop('checked', s.autoprint);
+        $printerOpenDrawer.prop('checked', s.open_cash_drawer);
         togglePrinterDriverFields();
     }
 
@@ -133,6 +139,7 @@
         const driver = $printerDriver.val();
         $printerNetworkFields.toggleClass('d-none', driver === 'browser');
         $printerHttpFields.toggleClass('d-none', driver !== 'http');
+        $printerDrawerField.toggleClass('d-none', driver === 'browser');
         $testPrintBtn.toggleClass('d-none', driver === 'browser');
     }
 
@@ -140,10 +147,11 @@
         return {
             driver: $printerDriver.val(),
             host: ($printerHost.val() || '127.0.0.1').trim(),
-            port: parseInt($printerPort.val(), 10) || 8000,
+            port: parseInt($printerPort.val(), 10) || 9100,
             http_path: ($printerHttpPath.val() || '/').trim(),
             http_format: $printerHttpFormat.val() || 'escpos',
             paper_width: parseInt($printerPaperWidth.val(), 10) === 58 ? 58 : 80,
+            open_cash_drawer: $printerOpenDrawer.is(':checked'),
             autoprint: $printerAutoprint.is(':checked'),
         };
     }

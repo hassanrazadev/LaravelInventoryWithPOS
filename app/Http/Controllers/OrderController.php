@@ -381,6 +381,7 @@ class OrderController extends Controller implements HasMiddleware
             'http_path' => ['nullable', 'string', 'max:120'],
             'http_format' => ['nullable', 'string', Rule::in(['escpos', 'text'])],
             'paper_width' => ['nullable', 'integer', Rule::in([58, 80])],
+            'open_cash_drawer' => ['nullable', 'boolean'],
         ]);
 
         return array_filter($validated, fn (mixed $v): bool => $v !== null && $v !== '');
