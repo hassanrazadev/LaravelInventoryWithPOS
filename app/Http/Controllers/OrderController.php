@@ -318,6 +318,7 @@ class OrderController extends Controller implements HasMiddleware
                 'createdBy' => fn ($q) => $q->withTrashed(),
                 'updatedBy' => fn ($q) => $q->withTrashed(),
                 'orderDetails.product' => fn ($q) => $q->withTrashed(),
+                'returns.product' => fn ($q) => $q->withTrashed(),
             ])
             ->findOrFail($id);
     }

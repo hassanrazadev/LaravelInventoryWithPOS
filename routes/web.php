@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +71,13 @@ Route::middleware('user')->group(function (): void {
         Route::patch('/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
         Route::patch('/delete-or-restore/{order}', [OrderController::class, 'deleteOrRestore'])->name('orders.delete');
     });
+
+    // Expenses & Sales Returns
+    Route::resource('expenses', ExpenseController::class);
+    Route::patch('expenses/delete-or-restore/{expense}', [ExpenseController::class, 'deleteOrRestore'])->name('expenses.delete');
+
+    Route::get('returns/order-items/{order}', [SaleReturnController::class, 'orderItems'])->name('returns.orderItems');
+    Route::resource('returns', SaleReturnController::class);
 
     // Users, Roles & Permissions
     Route::resource('users', UserController::class);

@@ -8,295 +8,268 @@
             <h1 class="page-title">Dashboard</h1>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="fa fa-home font-18"></i></a></li>
-                <li class="breadcrumb-item">Overview</li>
+                <li class="breadcrumb-item">Store Overview</li>
             </ol>
         </div>
-        @can('create order')
-            <a href="{{ route('orders.create') }}" class="btn btn-primary">
-                <i class="fa fa-shopping-basket mr-1"></i> Open POS
-            </a>
-        @endcan
-    </div>
-    <div class="row">
-        <div class="col-lg-3 col-md-6">
-            <div class="ibox bg-success color-white widget-stat">
-                <div class="ibox-body">
-                    <h2 class="m-b-5 font-strong">201</h2>
-                    <div class="m-b-5">NEW ORDERS</div><i class="ti-shopping-cart widget-stat-icon"></i>
-                    <div><i class="fa fa-level-up m-r-5"></i><small>25% higher</small></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="ibox bg-info color-white widget-stat">
-                <div class="ibox-body">
-                    <h2 class="m-b-5 font-strong">1250</h2>
-                    <div class="m-b-5">UNIQUE VIEWS</div><i class="ti-bar-chart widget-stat-icon"></i>
-                    <div><i class="fa fa-level-up m-r-5"></i><small>17% higher</small></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="ibox bg-warning color-white widget-stat">
-                <div class="ibox-body">
-                    <h2 class="m-b-5 font-strong">$1570</h2>
-                    <div class="m-b-5">TOTAL INCOME</div><i class="fa fa-money widget-stat-icon"></i>
-                    <div><i class="fa fa-level-up m-r-5"></i><small>22% higher</small></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="ibox bg-danger color-white widget-stat">
-                <div class="ibox-body">
-                    <h2 class="m-b-5 font-strong">108</h2>
-                    <div class="m-b-5">NEW USERS</div><i class="ti-user widget-stat-icon"></i>
-                    <div><i class="fa fa-level-down m-r-5"></i><small>-12% Lower</small></div>
-                </div>
-            </div>
+        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+            @can('create expense')
+                <a href="{{ route('expenses.create') }}" class="btn btn-light border">
+                    <i class="fa fa-credit-card mr-1"></i> Record Expense
+                </a>
+            @endcan
+            @can('create order')
+                <a href="{{ route('orders.create') }}" class="btn btn-primary">
+                    <i class="fa fa-shopping-basket mr-1"></i> Open POS
+                </a>
+            @endcan
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-3 col-sm-6 mb-3 mb-lg-0">
+            <div class="ims-kpi-card h-100">
+                <div class="d-flex justify-content-between align-items-start" style="gap: 10px;">
+                    <div style="min-width: 0;">
+                        <div class="ims-kpi-label">Completed Sales</div>
+                        <div class="ims-kpi-value text-primary">${{ number_format($kpis['total_revenue'], 2) }}</div>
+                        <div class="ims-kpi-sub text-muted">
+                            {{ $kpis['completed_orders_count'] }} orders · Today: ${{ number_format($kpis['today_revenue'], 2) }}
+                        </div>
+                    </div>
+                    <span class="ims-kpi-icon ims-kpi-icon-primary"><i class="fa fa-shopping-basket"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6 mb-3 mb-lg-0">
+            <div class="ims-kpi-card h-100">
+                <div class="d-flex justify-content-between align-items-start" style="gap: 10px;">
+                    <div style="min-width: 0;">
+                        <div class="ims-kpi-label">Inventory Stock</div>
+                        <div class="ims-kpi-value">{{ number_format($kpis['total_stock_units']) }} units</div>
+                        <div class="ims-kpi-sub {{ $kpis['low_stock_count'] > 0 ? 'text-warning font-weight-semibold' : 'text-success' }}">
+                            {{ $kpis['total_products'] }} products · {{ $kpis['low_stock_count'] }} low stock
+                        </div>
+                    </div>
+                    <span class="ims-kpi-icon ims-kpi-icon-info"><i class="fa fa-cubes"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6 mb-3 mb-sm-0">
+            <div class="ims-kpi-card h-100">
+                <div class="d-flex justify-content-between align-items-start" style="gap: 10px;">
+                    <div style="min-width: 0;">
+                        <div class="ims-kpi-label">Total Outflow</div>
+                        <div class="ims-kpi-value text-warning">${{ number_format($kpis['total_purchases'] + $kpis['total_expenses'], 2) }}</div>
+                        <div class="ims-kpi-sub text-muted">
+                            Purchases ${{ number_format($kpis['total_purchases'], 2) }} · Expenses ${{ number_format($kpis['total_expenses'], 2) }}
+                        </div>
+                    </div>
+                    <span class="ims-kpi-icon ims-kpi-icon-warning"><i class="fa fa-credit-card"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="ims-kpi-card h-100">
+                <div class="d-flex justify-content-between align-items-start" style="gap: 10px;">
+                    <div style="min-width: 0;">
+                        <div class="ims-kpi-label">Sales Returns</div>
+                        <div class="ims-kpi-value text-danger">${{ number_format($kpis['total_returns'], 2) }}</div>
+                        <div class="ims-kpi-sub text-muted">
+                            {{ $kpis['returns_count'] }} returns · {{ $kpis['customers_count'] }} customers · {{ $kpis['suppliers_count'] }} suppliers
+                        </div>
+                    </div>
+                    <span class="ims-kpi-icon ims-kpi-icon-danger"><i class="fa fa-undo"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-8">
             <div class="ibox">
-                <div class="ibox-body">
-                    <div class="flexbox mb-4">
-                        <div>
-                            <h3 class="m-0">Statistics</h3>
-                            <div>Your shop sales analytics</div>
-                        </div>
-                        <div class="d-inline-flex">
-                            <div class="px-3" style="border-right: 1px solid rgba(0,0,0,.1);">
-                                <div class="text-muted">WEEKLY INCOME</div>
-                                <div>
-                                    <span class="h2 m-0">$850</span>
-                                    <span class="text-success ml-2"><i class="fa fa-level-up"></i> +25%</span>
-                                </div>
-                            </div>
-                            <div class="px-3">
-                                <div class="text-muted">WEEKLY SALES</div>
-                                <div>
-                                    <span class="h2 m-0">240</span>
-                                    <span class="text-warning ml-2"><i class="fa fa-level-down"></i> -12%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="ibox-head flex-wrap" style="gap: 8px;">
                     <div>
-                        <canvas id="bar_chart" style="height:260px;"></canvas>
+                        <div class="ibox-title">Sales vs Purchases (Last 7 Days)</div>
+                    </div>
+                    <div class="d-flex align-items-center" style="gap: 16px;">
+                        <span class="small text-muted">7d Sales: <strong class="text-primary">${{ number_format($chartSeries['seven_day_sales'], 2) }}</strong></span>
+                        <span class="small text-muted">7d Purchases: <strong class="text-success">${{ number_format($chartSeries['seven_day_purchases'], 2) }}</strong></span>
+                    </div>
+                </div>
+                <div class="ibox-body">
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="sales_purchases_chart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-lg-4">
             <div class="ibox">
                 <div class="ibox-head">
-                    <div class="ibox-title">Statistics</div>
+                    <div class="ibox-title">Payment Breakdown</div>
+                    <span class="badge badge-soft-secondary">{{ $kpis['completed_orders_count'] }} sales</span>
                 </div>
                 <div class="ibox-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <canvas id="doughnut_chart" style="height:160px;"></canvas>
+                    @if(count($paymentBreakdown['rows']) > 0)
+                        <div style="height: 170px; position: relative;" class="mb-3">
+                            <canvas id="payment_methods_chart"></canvas>
                         </div>
-                        <div class="col-md-6">
-                            <div class="m-b-20 text-success"><i class="fa fa-circle-o m-r-10"></i>Desktop 52%</div>
-                            <div class="m-b-20 text-info"><i class="fa fa-circle-o m-r-10"></i>Tablet 27%</div>
-                            <div class="m-b-20 text-warning"><i class="fa fa-circle-o m-r-10"></i>Mobile 21%</div>
+                        <ul class="list-group list-group-divider list-group-full mb-0">
+                            @foreach($paymentBreakdown['rows'] as $row)
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <span class="ims-color-dot mr-2" style="background-color: {{ $row['color'] }};"></span>
+                                        {{ $row['label'] }}
+                                        <small class="text-muted">({{ $row['count'] }})</small>
+                                    </span>
+                                    <span class="font-weight-semibold">${{ number_format($row['total'], 2) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center text-muted py-5">
+                            <i class="fa fa-pie-chart fa-2x mb-2 d-block"></i>
+                            No completed orders yet.
                         </div>
-                    </div>
-                    <ul class="list-group list-group-divider list-group-full">
-                        <li class="list-group-item">Chrome
-                            <span class="float-right text-success"><i class="fa fa-caret-up"></i> 24%</span>
-                        </li>
-                        <li class="list-group-item">Firefox
-                            <span class="float-right text-success"><i class="fa fa-caret-up"></i> 12%</span>
-                        </li>
-                        <li class="list-group-item">Opera
-                            <span class="float-right text-danger"><i class="fa fa-caret-down"></i> 4%</span>
-                        </li>
-                    </ul>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-7">
             <div class="ibox">
                 <div class="ibox-head">
-                    <div class="ibox-title">Latest Orders</div>
-                    <div class="ibox-tools">
-                        <a class="ibox-collapse"><i class="fa fa-minus"></i></a>
-                        <a class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-ellipsis-v"></i></a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item">option 1</a>
-                            <a class="dropdown-item">option 2</a>
-                        </div>
-                    </div>
+                    <div class="ibox-title">Recent Orders</div>
+                    @can('read order')
+                        <a href="{{ route('orders.index') }}" class="btn btn-xs btn-light border">View All</a>
+                    @endcan
                 </div>
                 <div class="ibox-body">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Customer</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th width="91px">Date</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>
-                                <a href="invoice.html">AT2584</a>
-                            </td>
-                            <td>@Jack</td>
-                            <td>$564.00</td>
-                            <td>
-                                <span class="badge badge-success">Shipped</span>
-                            </td>
-                            <td>10/07/2017</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="invoice.html">AT2575</a>
-                            </td>
-                            <td>@Amalia</td>
-                            <td>$220.60</td>
-                            <td>
-                                <span class="badge badge-success">Shipped</span>
-                            </td>
-                            <td>10/07/2017</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="invoice.html">AT1204</a>
-                            </td>
-                            <td>@Emma</td>
-                            <td>$760.00</td>
-                            <td>
-                                <span class="badge badge-default">Pending</span>
-                            </td>
-                            <td>10/07/2017</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="invoice.html">AT7578</a>
-                            </td>
-                            <td>@James</td>
-                            <td>$87.60</td>
-                            <td>
-                                <span class="badge badge-warning">Expired</span>
-                            </td>
-                            <td>10/07/2017</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="invoice.html">AT0158</a>
-                            </td>
-                            <td>@Ava</td>
-                            <td>$430.50</td>
-                            <td>
-                                <span class="badge badge-default">Pending</span>
-                            </td>
-                            <td>10/07/2017</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="invoice.html">AT0127</a>
-                            </td>
-                            <td>@Noah</td>
-                            <td>$64.00</td>
-                            <td>
-                                <span class="badge badge-success">Shipped</span>
-                            </td>
-                            <td>10/07/2017</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    @if($recentOrders->isNotEmpty())
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-nowrap">Order #</th>
+                                    <th>Customer</th>
+                                    <th class="text-nowrap">Total</th>
+                                    <th>Status</th>
+                                    <th class="text-nowrap">Date</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($recentOrders as $order)
+                                    <tr>
+                                        <td class="font-weight-semibold text-nowrap">
+                                            @can('read order')
+                                                <a href="{{ route('orders.show', $order->id) }}">{{ $order->order_no }}</a>
+                                            @else
+                                                {{ $order->order_no }}
+                                            @endcan
+                                        </td>
+                                        <td>{{ $order->customer ? $order->customer->name : 'Walk-in / Guest' }}</td>
+                                        <td class="font-weight-medium text-nowrap">${{ number_format((float) $order->total, 2) }}</td>
+                                        <td>
+                                            @if($order->status === \App\Models\Order::STATUS_CANCELLED)
+                                                <span class="badge badge-soft-danger">Cancelled</span>
+                                            @else
+                                                <span class="badge badge-soft-success">Completed</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-muted text-nowrap">{{ $order->created_at->format('M d, H:i') }}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center text-muted py-4">No orders have been recorded yet.</div>
+                    @endif
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
+
+        <div class="col-lg-5">
             <div class="ibox">
                 <div class="ibox-head">
-                    <div class="ibox-title">Best Sellers</div>
+                    <div class="ibox-title">Low Stock Alerts (&le; 5)</div>
+                    @can('create purchase')
+                        <a href="{{ route('purchases.create') }}" class="btn btn-xs btn-outline-primary">Restock</a>
+                    @endcan
                 </div>
                 <div class="ibox-body">
-                    <ul class="media-list media-list-divider m-0">
-                        <li class="media">
-                            <a class="media-img" href="javascript:;">
-                                <img src="./assets/img/image.jpg" width="50px;" />
-                            </a>
-                            <div class="media-body">
-                                <div class="media-heading">
-                                    <a href="javascript:;">Samsung</a>
-                                    <span class="font-16 float-right">1200</span>
-                                </div>
-                                <div class="font-13">Lorem Ipsum is simply dummy text.</div>
-                            </div>
-                        </li>
-                        <li class="media">
-                            <a class="media-img" href="javascript:;">
-                                <img src="./assets/img/image.jpg" width="50px;" />
-                            </a>
-                            <div class="media-body">
-                                <div class="media-heading">
-                                    <a href="javascript:;">iPhone</a>
-                                    <span class="font-16 float-right">1150</span>
-                                </div>
-                                <div class="font-13">Lorem Ipsum is simply dummy text.</div>
-                            </div>
-                        </li>
-                        <li class="media">
-                            <a class="media-img" href="javascript:;">
-                                <img src="./assets/img/image.jpg" width="50px;" />
-                            </a>
-                            <div class="media-body">
-                                <div class="media-heading">
-                                    <a href="javascript:;">iMac</a>
-                                    <span class="font-16 float-right">800</span>
-                                </div>
-                                <div class="font-13">Lorem Ipsum is simply dummy text.</div>
-                            </div>
-                        </li>
-                        <li class="media">
-                            <a class="media-img" href="javascript:;">
-                                <img src="./assets/img/image.jpg" width="50px;" />
-                            </a>
-                            <div class="media-body">
-                                <div class="media-heading">
-                                    <a href="javascript:;">apple Watch</a>
-                                    <span class="font-16 float-right">705</span>
-                                </div>
-                                <div class="font-13">Lorem Ipsum is simply dummy text.</div>
-                            </div>
-                        </li>
-                    </ul>
+                    @if($lowStockProducts->isNotEmpty())
+                        <ul class="list-group list-group-divider list-group-full mb-0">
+                            @foreach($lowStockProducts as $product)
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center" style="min-width: 0;">
+                                        <img src="{{ asset('storage/' . $product->product_image) }}" alt="{{ $product->product_name }}" class="img-50 mr-2 flex-shrink-0">
+                                        <div style="min-width: 0;">
+                                            <div class="font-weight-medium text-truncate">{{ $product->product_name }}</div>
+                                            <small class="text-muted">{{ $product->product_code }} · {{ $product->category ? $product->category->category_name : '-' }}</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge {{ $product->quantity <= 0 ? 'badge-soft-danger' : 'badge-soft-warning' }} ml-2 flex-shrink-0">
+                                        {{ $product->quantity <= 0 ? 'Out of Stock' : $product->quantity . ' left' }}
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center text-success py-3">
+                            <i class="fa fa-check-circle mr-1"></i> All active products are well stocked.
+                        </div>
+                    @endif
                 </div>
-                <div class="ibox-footer text-center">
-                    <a href="javascript:;">View All Products</a>
+            </div>
+
+            <div class="ibox">
+                <div class="ibox-head">
+                    <div class="ibox-title">Top Selling Products</div>
+                    @can('read product')
+                        <a href="{{ route('products.index') }}" class="btn btn-xs btn-light border">All Products</a>
+                    @endcan
+                </div>
+                <div class="ibox-body">
+                    @if($topSellingProducts->isNotEmpty())
+                        <ul class="list-group list-group-divider list-group-full mb-0">
+                            @foreach($topSellingProducts as $top)
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center" style="min-width: 0;">
+                                        @if($top['image'])
+                                            <img src="{{ $top['image'] }}" alt="{{ $top['name'] }}" class="img-50 mr-2 flex-shrink-0">
+                                        @endif
+                                        <div style="min-width: 0;">
+                                            <div class="font-weight-medium text-truncate">{{ $top['name'] }}</div>
+                                            <small class="text-muted">{{ $top['code'] }} · {{ $top['units_sold'] }} sold</small>
+                                        </div>
+                                    </div>
+                                    <span class="font-weight-bold text-primary ml-2 flex-shrink-0">${{ number_format($top['total_revenue'], 2) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center text-muted py-3">No product sales recorded yet.</div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
-    <style>
-        .visitors-table tbody tr td:last-child {
-            display: flex;
-            align-items: center;
-        }
-
-        .visitors-table .progress {
-            flex: 1;
-        }
-
-        .visitors-table .progress-parcent {
-            text-align: right;
-            margin-left: 10px;
-        }
-    </style>
 @endsection
 
 @section('js')
-    <script src="{{asset('assets/js/Chart.min.js')}}" type="text/javascript"></script>
-    <script src="{{asset('assets/js/dashboard_1_demo.js')}}" type="text/javascript"></script>
+    <script src="{{ asset('assets/js/Chart.min.js') }}" type="text/javascript"></script>
+    <script type="text/javascript">
+        window.DASHBOARD_DATA = {
+            chartSeries: @json($chartSeries),
+            paymentBreakdown: @json($paymentBreakdown),
+        };
+    </script>
+    <script src="{{ asset('assets/js/dashboard.js') }}" type="text/javascript"></script>
 @endsection

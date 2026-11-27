@@ -16,6 +16,13 @@
             <a href="{{ route('orders.receipt', $order->id) }}" target="_blank" class="btn btn-primary">
                 <i class="fa fa-print mr-1"></i> Print Receipt
             </a>
+            @if($order->status === \App\Models\Order::STATUS_COMPLETED)
+                @can('create return')
+                    <a href="{{ route('returns.create', ['order_id' => $order->id]) }}" class="btn btn-light border">
+                        <i class="fa fa-undo mr-1"></i> Record Return
+                    </a>
+                @endcan
+            @endif
             @canany(['update order', 'delete order'])
                 @if($order->status === \App\Models\Order::STATUS_COMPLETED)
                     <form action="{{ route('orders.cancel', $order->id) }}" method="POST" class="m-0" onsubmit="return confirm('Cancel this order and restore stock?');">
@@ -127,6 +134,44 @@
                         </tfoot>
                     </table>
                 </div>
+
+                @if($order->returns->isNotEmpty())
+                    <h6 class="mt-4 mb-3"><i class="fa fa-undo mr-2 text-danger"></i>Recorded Returns</h6>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered mb-0">
+                            <thead>
+                            <tr>
+                                <th>Return #</th>
+                                <th>Product</th>
+                                <th class="text-right">Qty</th>
+                                <th class="text-right">Refund</th>
+                                <th>Restocked</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($order->returns as $ret)
+                                <tr>
+                                    <td><a href="{{ route('returns.show', $ret->id) }}">#{{ $ret->id }}</a></td>
+                                    <td>{{ $ret->product ? $ret->product->product_name : '-' }}</td>
+                                    <td class="text-right">{{ $ret->quantity }}</td>
+                                    <td class="text-right font-weight-semibold text-danger">${{ number_format((float) $ret->return_price, 2) }}</td>
+                                    <td>
+                                        @if($ret->restock)
+                                            <span class="badge badge-soft-success">Yes</span>
+                                        @else
+                                            <span class="badge badge-soft-secondary">No</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $ret->reason ?: '-' }}</td>
+                                    <td>{{ $ret->created_at->format('Y-m-d H:i') }}</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

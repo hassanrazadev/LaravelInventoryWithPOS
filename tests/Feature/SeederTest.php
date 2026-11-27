@@ -8,6 +8,7 @@ use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\SaleReturn;
 use App\Models\Supplier;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -56,6 +57,7 @@ class SeederTest extends TestCase
         $this->assertSame(3, Customer::count());
         $this->assertSame(3, Purchase::count());
         $this->assertSame(2, Order::count());
+        $this->assertSame(1, SaleReturn::count());
         $this->assertSame(3, Expense::count());
 
         $this->assertSame(
@@ -67,7 +69,7 @@ class SeederTest extends TestCase
             (int) Product::where('product_slug', 'logitech-mx-master-3s-mouse')->value('quantity')
         );
         $this->assertSame(
-            47,
+            48,
             (int) Product::where('product_slug', 'sandisk-ultra-128gb-usb-flash')->value('quantity')
         );
 

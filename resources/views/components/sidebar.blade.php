@@ -64,7 +64,7 @@
                 </li>
             @endcanany
 
-            @if(auth()->user()->canAny(['create purchase', 'read purchase', 'create order', 'read order']))
+            @if(auth()->user()->canAny(['create purchase', 'read purchase', 'create order', 'read order', 'create expense', 'read expense', 'create return', 'read return']))
                 <li class="heading">TRANSACTIONS</li>
             @endif
 
@@ -106,6 +106,50 @@
                         @can('read order')
                             <li>
                                 <a class="{{ url()->current() == route('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">Manage Orders</a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+            @canany(['create expense', 'read expense'])
+                <li class="{{ $activeNav == 'expenses' ? 'active' : '' }}">
+                    <a href="javascript:;">
+                        <i class="sidebar-item-icon fa fa-credit-card"></i>
+                        <span class="nav-label">Expenses</span>
+                        <i class="fa fa-angle-left arrow"></i>
+                    </a>
+                    <ul class="nav-2-level collapse {{ $activeNav == 'expenses' ? 'in' : '' }}">
+                        @can('create expense')
+                            <li>
+                                <a class="{{ url()->current() == route('expenses.create') ? 'active' : '' }}" href="{{ route('expenses.create') }}">Add Expense</a>
+                            </li>
+                        @endcan
+                        @can('read expense')
+                            <li>
+                                <a class="{{ url()->current() == route('expenses.index') ? 'active' : '' }}" href="{{ route('expenses.index') }}">Manage Expenses</a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+            @canany(['create return', 'read return'])
+                <li class="{{ $activeNav == 'returns' ? 'active' : '' }}">
+                    <a href="javascript:;">
+                        <i class="sidebar-item-icon fa fa-undo"></i>
+                        <span class="nav-label">Sales Returns</span>
+                        <i class="fa fa-angle-left arrow"></i>
+                    </a>
+                    <ul class="nav-2-level collapse {{ $activeNav == 'returns' ? 'in' : '' }}">
+                        @can('create return')
+                            <li>
+                                <a class="{{ url()->current() == route('returns.create') ? 'active' : '' }}" href="{{ route('returns.create') }}">Record Return</a>
+                            </li>
+                        @endcan
+                        @can('read return')
+                            <li>
+                                <a class="{{ url()->current() == route('returns.index') ? 'active' : '' }}" href="{{ route('returns.index') }}">Manage Returns</a>
                             </li>
                         @endcan
                     </ul>
