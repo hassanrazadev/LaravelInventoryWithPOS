@@ -100,7 +100,7 @@ class DemoDataSeeder extends Seeder
 
         $categories = [];
         foreach ($categoriesData as $item) {
-            $imagePath = 'category/demo-' . $item['slug'] . '.png';
+            $imagePath = 'category/demo-'.$item['slug'].'.png';
             $this->ensurePlaceholderImage(
                 $imagePath,
                 $item['color'][0],
@@ -196,7 +196,7 @@ class DemoDataSeeder extends Seeder
 
         $products = [];
         foreach ($productsData as $item) {
-            $imagePath = 'product/demo-' . $item['slug'] . '.png';
+            $imagePath = 'product/demo-'.$item['slug'].'.png';
             $this->ensurePlaceholderImage(
                 $imagePath,
                 $item['color'][0],

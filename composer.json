@@ -1,12 +1,28 @@
 {
-    "name": "laravel/laravel",
+    "name": "hassanrazadev/laravel-inventory-with-pos",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "Open-source Inventory Management System with Point of Sale (POS) built on Laravel 13.",
     "keywords": [
-        "framework",
-        "laravel"
+        "laravel",
+        "inventory",
+        "pos",
+        "point-of-sale",
+        "inventory-management",
+        "rbac"
     ],
+    "homepage": "https://github.com/hassanrazadev/LaravelInventoryWithPOS",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Hassan Raza",
+            "email": "info@hassanraza.net",
+            "homepage": "https://hassanraza.net"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/hassanrazadev/LaravelInventoryWithPOS/issues",
+        "source": "https://github.com/hassanrazadev/LaravelInventoryWithPOS"
+    },
     "require": {
         "php": "^8.3",
         "ext-gd": "*",
@@ -17,6 +33,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "laravel/pint": "^1.32",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^12.0"
@@ -46,6 +63,9 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "scripts": {
+        "test": "@php artisan test",
+        "lint": "./vendor/bin/pint --test",
+        "format": "./vendor/bin/pint",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

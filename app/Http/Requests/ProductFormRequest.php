@@ -4,13 +4,15 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProductFormRequest extends FormRequest {
+class ProductFormRequest extends FormRequest
+{
     /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return true;
     }
 
@@ -19,12 +21,14 @@ class ProductFormRequest extends FormRequest {
      *
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         if (in_array($this->method(), ['PUT', 'PATCH'])) {
             $imageRule = 'nullable';
-        }else{
+        } else {
             $imageRule = 'required';
         }
+
         return [
             'category_id' => 'required|exists:categories,id',
             'product_name' => 'required|min:5',
@@ -35,7 +39,8 @@ class ProductFormRequest extends FormRequest {
         ];
     }
 
-    public function messages() {
+    public function messages()
+    {
         return [
             'category_id.required' => 'The category field is required',
         ];

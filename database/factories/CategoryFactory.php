@@ -31,8 +31,8 @@ class CategoryFactory extends Factory
             'parent_id' => null,
             'category_name' => $name,
             'category_code' => strtoupper($this->faker->unique()->bothify('CAT-####')),
-            'category_image' => 'category/' . Str::random(10) . '.png',
-            'category_slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(100, 9999),
+            'category_image' => 'category/'.Str::random(10).'.png',
+            'category_slug' => Str::slug($name).'-'.$this->faker->unique()->numberBetween(100, 9999),
         ];
     }
 }

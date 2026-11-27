@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Supplier extends Model{
-
+class Supplier extends Model
+{
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'image', 'address', 'created_by', 'updated_by'
+        'name', 'email', 'phone', 'image', 'address', 'created_by', 'updated_by',
     ];
 
     // ===================== ORM Definition START ===================== //
@@ -29,14 +29,16 @@ class Supplier extends Model{
     /**
      * @return BelongsTo
      */
-    public function createdBy(){
+    public function createdBy()
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
      * @return BelongsTo
      */
-    public function updatedBy(){
+    public function updatedBy()
+    {
         return $this->belongsTo(User::class, 'updated_by');
     }
 

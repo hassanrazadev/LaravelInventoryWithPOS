@@ -34,8 +34,8 @@ class ProductFactory extends Factory
             'product_code' => strtoupper($this->faker->unique()->bothify('PRD-#####')),
             'quantity' => 0,
             'sale_price' => $this->faker->randomFloat(2, 10, 500),
-            'product_image' => 'product/' . Str::random(10) . '.png',
-            'product_slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(100, 9999),
+            'product_image' => 'product/'.Str::random(10).'.png',
+            'product_slug' => Str::slug($name).'-'.$this->faker->unique()->numberBetween(100, 9999),
         ];
     }
 }
