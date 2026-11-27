@@ -65,9 +65,11 @@ Route::middleware('user')->group(function (): void {
 
     // Orders & POS
     Route::get('orders/pos/products', [OrderController::class, 'products'])->name('orders.products');
+    Route::post('orders/pos/printer/test', [OrderController::class, 'testThermalPrinter'])->name('orders.printer.test');
     Route::resource('orders', OrderController::class)->except(['edit', 'update']);
     Route::prefix('orders')->group(function (): void {
         Route::get('/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
+        Route::post('/{order}/print-thermal', [OrderController::class, 'printThermal'])->name('orders.printThermal');
         Route::patch('/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
         Route::patch('/delete-or-restore/{order}', [OrderController::class, 'deleteOrRestore'])->name('orders.delete');
     });

@@ -4,11 +4,15 @@
     "description": "Open-source Inventory Management System with Point of Sale (POS) built on Laravel 13.",
     "keywords": [
         "laravel",
+        "laravel-13",
         "inventory",
         "pos",
         "point-of-sale",
         "inventory-management",
-        "rbac"
+        "esc-pos",
+        "thermal-printer",
+        "rbac",
+        "open-source"
     ],
     "homepage": "https://github.com/hassanrazadev/LaravelInventoryWithPOS",
     "license": "MIT",

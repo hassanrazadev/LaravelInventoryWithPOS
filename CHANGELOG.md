@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased / Open-Source Release
 
+### Milestone 5 — POS UX Polish, ESC/POS Thermal Printing & Community Readiness
+- Flattened sidebar navigation (`Sidebar.php`, `sidebar.blade.php`) into single-click groups (`MAIN`, `SALES & OPERATIONS`, `INVENTORY`, `CONTACTS`, `ADMINISTRATION`) with `POS Terminal` pinned near top, refined mini-rail alignment, and hid duplicate header POS CTA on `/orders/create`.
+- Redesigned `/orders/create` POS workspace (`pos.js`, `modern-theme.css`) with a compact `430px` sticky checkout rail, `In Stock` filter toggle, 2-row card cart items, `$5 / $10 / $20 / $50 / $100` quick cash chips, payment method pills, aligned tender controls, and side-by-side `Complete Sale` + `Pay & Print` actions.
+- Added `ThermalReceiptService`, `config/pos.php`, and `/orders/pos/printer/test` + `/orders/{order}/print-thermal` endpoints with **Browser Print** (`80mm`/`58mm`) as the production default and optional hardware integrations:
+  - Raw ESC/POS TCP socket printing (standard port `9100`, for optional LAN thermal printers)
+  - Optional ESC/POS Pin 2 cash drawer solenoid pulse (`ESC p 0 25 250`) on Cash sales
+  - Optional HTTP POST bridge (`escpos` raw bytes or plain text) alongside standalone `80mm` / `58mm` browser receipt preview (`/orders/{order}/receipt`)
+  - SSRF host allowlist restricting network targets to localhost and RFC1918 private IPs (`isAllowedPrinterHost`)
+- Added `ThermalReceiptServiceTest` and `ThermalPrintTest`, expanding automated PHPUnit coverage to 52 tests.
+- Added `CODE_OF_CONDUCT.md`, MIT metadata in `package.json`, `composer.json` keywords, README architecture/printing docs, and 5 UI screenshots in `docs/screenshots/`.
+
 ### Milestone 4 — Open-Source Readiness
 - Added `LICENSE` (MIT), updated `composer.json` metadata/scripts, clean `.env.example`, and `.gitignore`.
 - Installed `laravel/pint` (`v1.32`) with `pint.json` (`laravel` preset) and formatted the PHP codebase.

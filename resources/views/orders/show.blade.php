@@ -12,7 +12,10 @@
                 <li class="breadcrumb-item">{{ $order->order_no }}</li>
             </ol>
         </div>
-        <div class="d-flex align-items-center" style="gap: 8px;">
+        <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+            <button type="button" class="btn btn-success {{ config('pos.printer.driver', 'browser') === 'browser' ? 'd-none' : '' }}" id="order-thermal-print-btn" data-url="{{ route('orders.printThermal', $order->id) }}">
+                <i class="fa fa-bolt mr-1"></i> Thermal Print
+            </button>
             <a href="{{ route('orders.receipt', $order->id) }}" target="_blank" class="btn btn-primary">
                 <i class="fa fa-print mr-1"></i> Print Receipt
             </a>
@@ -175,4 +178,59 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('js')
+    <script type="text/javascript">
+        (function ($) {
+            const defaultPrinter = @json(config('pos.printer'));
+            let savedSettings = {};
+            try {
+                savedSettings = JSON.parse(localStorage.getItem('ims_pos_printer_settings_v3') || '{}');
+            } catch (e) {
+                savedSettings = {};
+            }
+            const activeDriver = savedSettings.driver || defaultPrinter.driver || 'browser';
+            const $thermalBtn = $('#order-thermal-print-btn');
+            if (activeDriver === 'tcp' || activeDriver === 'http') {
+                $thermalBtn.removeClass('d-none');
+            }
+
+            $thermalBtn.on('click', function () {
+                const $btn = $(this);
+                const url = $btn.attr('data-url');
+                const saved = savedSettings;
+                const payload = {
+                    driver: saved.driver === 'http' ? 'http' : (defaultPrinter.driver === 'http' ? 'http' : 'tcp'),
+                    host: saved.host || defaultPrinter.host || '127.0.0.1',
+                    port: saved.port || defaultPrinter.port || 9100,
+                    http_path: saved.http_path || defaultPrinter.http_path || '/',
+                    http_format: saved.http_format || defaultPrinter.http_format || 'escpos',
+                    paper_width: Number(saved.paper_width || defaultPrinter.paper_width || 80),
+                    open_cash_drawer: false
+                };
+
+                const orig = $btn.html();
+                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Printing...');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    headers: { Accept: 'application/json' },
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function (res) {
+                        showToast(res.status ? 'Thermal Printer' : 'Printer Error', res.message, res.status ? 'success' : 'error');
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Unable to send thermal print job.';
+                        showToast('Printer Error', msg, 'error');
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).html(orig);
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
 @endsection

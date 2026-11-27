@@ -22,6 +22,11 @@ Thank you for your interest in contributing! Whether you are fixing a bug, addin
    php artisan migrate --seed
    ```
 
+## Documentation & Standards
+
+- Review the [Code of Conduct](CODE_OF_CONDUCT.md) before participating; all contributors are expected to follow it.
+- Report suspected security issues privately as described in [SECURITY.md](SECURITY.md).
+
 ## Quality Checks Before Opening a PR
 
 All pull requests run automated CI checks on GitHub Actions. Please verify locally before pushing:
@@ -50,6 +55,7 @@ All pull requests run automated CI checks on GitHub Actions. Please verify local
 - Ensure migrations work cleanly on both **MySQL 8+** and **SQLite** (keep schema column additions and `->change()` alterations in separate `Schema::table` blocks).
 - Keep UI changes clean, accessible, and free of console/network errors.
 - Enforce Spatie permissions (`HasMiddleware` + `@can`) on new endpoints and UI actions.
+- When changing receipt formatting or optional ESC/POS payloads (`App\Services\ThermalReceiptService`), run unit/feature print tests (`composer test`) and verify `/orders/{id}/receipt` (`80mm`/`58mm` browser preview). Any external virtual printer emulator is strictly for local development/testing only and must remain optional (`POS_PRINTER_DRIVER=browser` default for production).
 
 ## Submitting a Pull Request
 

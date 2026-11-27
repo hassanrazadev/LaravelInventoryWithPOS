@@ -30,4 +30,5 @@ We aim to acknowledge reports within **72 hours** and coordinate a fix before pu
 - Use a strong, randomly generated `APP_KEY` and unique database credentials.
 - Change or remove seeded demo accounts (`admin@test.com`, `manager@test.com`, `cashier@test.com`) immediately after setup.
 - Enforce HTTPS behind a trusted reverse proxy and configure `SESSION_SECURE_COOKIE=true`.
+- Keep thermal receipt printing scoped to trusted local printers: `App\Services\ThermalReceiptService::isAllowedPrinterHost()` rejects public internet IPs, DNS hostnames (unless matching `POS_PRINTER_HOST`), and cloud metadata ranges (`169.254.0.0/16`), permitting only localhost (`127.0.0.1`, `localhost`, `::1`) and private RFC1918 LAN subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). Do not expose `POS_PRINTER_HOST` to untrusted external endpoints.
 - Keep dependencies updated via `composer update` and monitor Dependabot alerts.

@@ -1,4 +1,7 @@
 {
+    "name": "laravel-inventory-with-pos",
+    "description": "Frontend assets for Laravel Inventory Management with POS (IMS-POS)",
+    "license": "MIT",
     "private": true,
     "type": "module",
     "scripts": {
