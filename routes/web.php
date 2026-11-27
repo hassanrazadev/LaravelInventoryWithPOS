@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,9 +54,21 @@ Route::middleware('user')->group(function (): void {
         Route::get('/product-form/{index?}', [PurchaseController::class, 'productForm'])->name('purchases.productForm');
     });
 
-    // Orders
-    Route::resource('orders', OrderController::class);
-    Route::patch('orders/delete-or-restore/{order}', [OrderController::class, 'deleteOrRestore'])->name('orders.delete');
+    // Suppliers & Customers
+    Route::resource('suppliers', SupplierController::class);
+    Route::patch('suppliers/delete-or-restore/{supplier}', [SupplierController::class, 'deleteOrRestore'])->name('suppliers.delete');
+
+    Route::resource('customers', CustomerController::class);
+    Route::patch('customers/delete-or-restore/{customer}', [CustomerController::class, 'deleteOrRestore'])->name('customers.delete');
+
+    // Orders & POS
+    Route::get('orders/pos/products', [OrderController::class, 'products'])->name('orders.products');
+    Route::resource('orders', OrderController::class)->except(['edit', 'update']);
+    Route::prefix('orders')->group(function (): void {
+        Route::get('/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
+        Route::patch('/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::patch('/delete-or-restore/{order}', [OrderController::class, 'deleteOrRestore'])->name('orders.delete');
+    });
 
     // Users, Roles & Permissions
     Route::resource('users', UserController::class);

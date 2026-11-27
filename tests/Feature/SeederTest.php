@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
@@ -54,11 +55,20 @@ class SeederTest extends TestCase
         $this->assertSame(3, Supplier::count());
         $this->assertSame(3, Customer::count());
         $this->assertSame(3, Purchase::count());
+        $this->assertSame(2, Order::count());
         $this->assertSame(3, Expense::count());
 
         $this->assertSame(
             5,
             (int) Product::where('product_slug', 'dell-latitude-5420-laptop')->value('quantity')
+        );
+        $this->assertSame(
+            18,
+            (int) Product::where('product_slug', 'logitech-mx-master-3s-mouse')->value('quantity')
+        );
+        $this->assertSame(
+            47,
+            (int) Product::where('product_slug', 'sandisk-ultra-128gb-usb-flash')->value('quantity')
         );
 
         $seededCategory = Category::where('category_slug', 'electronics')->firstOrFail();
