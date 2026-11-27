@@ -138,7 +138,7 @@ class HomeController extends Controller
                 'name' => $product ? $product->product_name : 'Product',
                 'code' => $product ? $product->product_code : '-',
                 'category' => $product && $product->category ? $product->category->category_name : '-',
-                'image' => $product ? asset('storage/' . $product->product_image) : null,
+                'image' => $product ? asset('storage/'.$product->product_image) : null,
                 'units_sold' => (int) $row->units_sold,
                 'total_revenue' => round((float) $row->total_revenue, 2),
             ];

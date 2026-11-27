@@ -14,6 +14,7 @@ class Order extends Model
     use HasFactory, SoftDeletes;
 
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const PAYMENT_METHODS = [
@@ -88,7 +89,7 @@ class Order extends Model
     public static function generateOrderNumber(): string
     {
         do {
-            $candidate = 'ORD-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
+            $candidate = 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(5));
         } while (self::withTrashed()->where('order_no', $candidate)->exists());
 
         return $candidate;

@@ -154,7 +154,7 @@ class OrderController extends Controller implements HasMiddleware
             $paidAmount = round((float) $validated['paid_amount'], 2);
             if ($paidAmount + 0.00001 < $total) {
                 throw ValidationException::withMessages([
-                    'paid_amount' => 'Paid amount must be at least ' . number_format($total, 2) . '.',
+                    'paid_amount' => 'Paid amount must be at least '.number_format($total, 2).'.',
                 ]);
             }
 
@@ -333,7 +333,7 @@ class OrderController extends Controller implements HasMiddleware
             'category_name' => $product->category ? $product->category->category_name : '-',
             'sale_price' => (float) $product->sale_price,
             'quantity' => (int) $product->quantity,
-            'image' => asset('storage/' . $product->product_image),
+            'image' => asset('storage/'.$product->product_image),
         ];
     }
 }

@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use App\Utils\AppUtils;
-use Carbon\Carbon;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,132 +14,147 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class Product extends Model{
+class Product extends Model
+{
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'category_id', 'created_by', 'updated_by', 'product_name', 'product_code', 'quantity', 'sale_price', 'product_image', 'product_slug'
+        'category_id', 'created_by', 'updated_by', 'product_name', 'product_code', 'quantity', 'sale_price', 'product_image', 'product_slug',
     ];
     // ===================== ORM Definition START ===================== //
 
     /**
      * @return BelongsTo
      */
-    public function category(){
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
 
     /**
      * @return BelongsTo
      */
-    public function createdBy(){
+    public function createdBy()
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
      * @return BelongsTo
      */
-    public function updatedBy(){
+    public function updatedBy()
+    {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
     /**
      * @return BelongsToMany
      */
-    public function suppliers(){
+    public function suppliers()
+    {
         return $this->belongsToMany(Supplier::class);
     }
 
     /**
      * @return BelongsToMany
      */
-    public function purchases(){
+    public function purchases()
+    {
         return $this->belongsToMany(Purchase::class, 'purchase_details')->withPivot('quantity', 'unit_price', 'sub_total');
     }
 
     /**
      * @return HasMany
      */
-    public function orderDetails(){
+    public function orderDetails()
+    {
         return $this->hasMany(OrderDetail::class);
     }
     // ===================== ORM Definition END ===================== //
 
     /**
      * get specified product by id
-     * @param int $id
-     * @param bool $withTrashed
+     *
+     * @param  bool  $withTrashed
      * @return array
      */
-    public function getProductById(int $id, $withTrashed = false) {
+    public function getProductById(int $id, $withTrashed = false)
+    {
         $product = $this->newQuery()
             ->where('id', $id)
-            ->when($withTrashed, function ($query){
-                $query->withTrashed();
-            })
-            ->with([
-                'category' => function ($query){
-                    $query->withTrashed();
-                }
-            ])->firstOrFail()->format();
-
-        $data = [];
-        if ($product){
-            $data['status'] = true;
-            $data['product'] = $product;
-        }else{
-            $data['status'] = false;
-            $data['product'] = [];
-        }
-        return $data;
-    }
-
-    /**
-     * @param string $slug
-     * @param bool $withTrashed
-     * @return mixed
-     */
-    public function getProductBySlug(string $slug, $withTrashed = false) {
-        $product = $this::where('product_slug', $slug)
-            ->when($withTrashed, function ($query){
-                $query->withTrashed();
-            })
-            ->with([
-                'category' => function ($query){
-                    $query->withTrashed();
-                },
-                'purchases'
-            ])->firstOrFail()->format();
-
-        $data['status'] = true;
-        $data['product'] = $product;
-        return $data;
-    }
-    /**
-     * @param bool $withTrashed
-     * @return Collection
-     */
-    public function getProducts($withTrashed = false) {
-        return $this->when($withTrashed, function ($query){
+            ->when($withTrashed, function ($query) {
                 $query->withTrashed();
             })
             ->with([
                 'category' => function ($query) {
                     $query->withTrashed();
                 },
-                'createdBy',
-                'updatedBy',
-                'purchases.supplier',
-            ])
-            ->get()->map(function ($product){
+            ])->firstOrFail()->format();
+
+        $data = [];
+        if ($product) {
+            $data['status'] = true;
+            $data['product'] = $product;
+        } else {
+            $data['status'] = false;
+            $data['product'] = [];
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param  bool  $withTrashed
+     * @return mixed
+     */
+    public function getProductBySlug(string $slug, $withTrashed = false)
+    {
+        $product = $this::where('product_slug', $slug)
+            ->when($withTrashed, function ($query) {
+                $query->withTrashed();
+            })
+            ->with([
+                'category' => function ($query) {
+                    $query->withTrashed();
+                },
+                'purchases',
+            ])->firstOrFail()->format();
+
+        $data['status'] = true;
+        $data['product'] = $product;
+
+        return $data;
+    }
+
+    /**
+     * @param  bool  $withTrashed
+     * @return Collection
+     */
+    public function getProducts($withTrashed = false)
+    {
+        return $this->when($withTrashed, function ($query) {
+            $query->withTrashed();
+        })
+            ->with([
+            'category' => function ($query) {
+                $query->withTrashed();
+            },
+            'createdBy',
+            'updatedBy',
+            'purchases.supplier',
+        ])
+            ->get()->map(function ($product) {
                 return $product->format();
             });
     }
+
     /**
      * format product object
+     *
      * @return array
      */
-    public function format(){
+    public function format()
+    {
         return [
             'id' => $this->id,
             'category' => $this->category ? $this->category->category_name : '-',
@@ -157,7 +170,7 @@ class Product extends Model{
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
-            'purchases' => $this->purchases->map(function ($purchase){
+            'purchases' => $this->purchases->map(function ($purchase) {
                 return [
                     'purchase_id' => $purchase->id,
                     'supplier' => $purchase->supplier ? $purchase->supplier->name : '-',
@@ -166,118 +179,116 @@ class Product extends Model{
                     'created_at' => $purchase->created_at,
                     'sub_total' => $purchase->pivot->sub_total,
                 ];
-            })
+            }),
         ];
     }
 
     /**
      * store new product
-     * @param array $fields
+     *
      * @return array
      */
-    public function storeProduct(array $fields) {
+    public function storeProduct(array $fields)
+    {
         $productImage = $fields['product_image'];
         $productImage = AppUtils::base64ToImage($productImage);
-        $imageName = time() . '_' . Str::random(8) . '_product.png';
+        $imageName = time().'_'.Str::random(8).'_product.png';
         $fields['created_by'] = auth()->id();
-        $fields['product_image'] = 'product/' . $imageName;
+        $fields['product_image'] = 'product/'.$imageName;
         $product = $this::create($fields);
 
         $data = [];
         if ($product) {
             $data['status'] = true;
-            $data['message'] = "New product was added";
-            Storage::disk('public')->put('product/' . $imageName, $productImage);
+            $data['message'] = 'New product was added';
+            Storage::disk('public')->put('product/'.$imageName, $productImage);
         } else {
             $data['status'] = false;
-            $data['message'] = "There is problem adding new product";
+            $data['message'] = 'There is problem adding new product';
         }
 
         return $data;
     }
 
     /**
-     * @param array $fields
-     * @param int $id
      * @return mixed
      */
-    public function updateProduct(array $fields, int $id) {
+    public function updateProduct(array $fields, int $id)
+    {
         $product = $this::withTrashed()->findOrFail($id);
-        if ($product){
-            if (!empty($fields['product_image'])){
+        if ($product) {
+            if (! empty($fields['product_image'])) {
                 $oldImage = $product->product_image;
                 $productImage = $fields['product_image'];
                 $productImage = AppUtils::base64ToImage($productImage);
-                $imageName = time() . '_' . Str::random(8) . '_product.png';
-                $fields['product_image'] = 'product/' . $imageName;
-                Storage::disk('public')->put('product/' . $imageName, $productImage);
+                $imageName = time().'_'.Str::random(8).'_product.png';
+                $fields['product_image'] = 'product/'.$imageName;
+                Storage::disk('public')->put('product/'.$imageName, $productImage);
                 if ($oldImage && $oldImage !== $fields['product_image'] && Storage::disk('public')->exists($oldImage)) {
                     Storage::disk('public')->delete($oldImage);
                 }
-            }else{
+            } else {
                 unset($fields['product_image']);
             }
 
             $fields['updated_by'] = auth()->id();
             $product->update($fields);
             $data['status'] = true;
-            $data['message'] = "Product was updated";
-        }else{
+            $data['message'] = 'Product was updated';
+        } else {
             $data['status'] = false;
-            $data['message'] = "There is problem updating product";
+            $data['message'] = 'There is problem updating product';
         }
 
         return $data;
     }
 
     /**
-     * @param int $id
      * @return array
      */
-    public function destroyProduct(int $id) {
+    public function destroyProduct(int $id)
+    {
         $product = $this::withTrashed()->where('id', $id)->firstOrFail();
         $data = [];
-        if ($product){
+        if ($product) {
             $oldImage = $product->product_image;
             $product->forceDelete();
             if ($oldImage && Storage::disk('public')->exists($oldImage)) {
                 Storage::disk('public')->delete($oldImage);
             }
             $data['status'] = true;
-            $data['message'] = "Product was deleted";
-        }else{
+            $data['message'] = 'Product was deleted';
+        } else {
             $data['status'] = false;
-            $data['message'] = "There is problem deleting product";
+            $data['message'] = 'There is problem deleting product';
         }
 
         return $data;
     }
 
     /**
-     * @param $id
      * @return array
      */
-    public function deleteOrRestore($id) {
+    public function deleteOrRestore($id)
+    {
         $data = [];
         $product = $this::withTrashed()->findOrFail($id);
-        if ($product){
-            if ($product->trashed()){
+        if ($product) {
+            if ($product->trashed()) {
                 $product->restore();
-            }else{
+            } else {
                 try {
                     $product->delete();
                 } catch (Exception $e) {
                 }
             }
             $data['status'] = true;
-            $data['message'] = "Product status was updated";
-        }else {
+            $data['message'] = 'Product status was updated';
+        } else {
             $data['status'] = false;
-            $data['message'] = "Product not found";
+            $data['message'] = 'Product not found';
         }
 
         return $data;
     }
-
-
 }

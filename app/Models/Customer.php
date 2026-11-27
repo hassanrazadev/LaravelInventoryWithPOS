@@ -12,9 +12,8 @@ class Customer extends Model
 {
     use HasFactory, SoftDeletes;
 
-
     protected $fillable = [
-        'name', 'email', 'phone', 'address', 'image', 'created_by', 'updated_by'
+        'name', 'email', 'phone', 'address', 'image', 'created_by', 'updated_by',
     ];
 
     // ===================== ORM Definition START ===================== //
@@ -22,21 +21,24 @@ class Customer extends Model
     /**
      * @return HasMany
      */
-    public function orders(){
+    public function orders()
+    {
         return $this->hasMany(Order::class);
     }
 
     /**
      * @return BelongsTo
      */
-    public function createdBy(){
+    public function createdBy()
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
      * @return BelongsTo
      */
-    public function updatedBy(){
+    public function updatedBy()
+    {
         return $this->belongsTo(User::class, 'updated_by');
     }
 

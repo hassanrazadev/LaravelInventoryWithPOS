@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability Report
+    url: https://github.com/hassanrazadev/LaravelInventoryWithPOS/blob/master/SECURITY.md
+    about: Please follow our private disclosure process in SECURITY.md instead of opening a public issue.

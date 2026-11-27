@@ -12,3 +12,6 @@ npm-debug.log
 yarn-error.log
 .idea
 db.docx
+.fuse_hidden*
+.DS_Store
+Thumbs.db

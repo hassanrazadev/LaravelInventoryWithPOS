@@ -4,13 +4,15 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class PurchaseFormRequest extends FormRequest {
+class PurchaseFormRequest extends FormRequest
+{
     /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool
      */
-    public function authorize() {
+    public function authorize()
+    {
         return true;
     }
 
@@ -19,7 +21,8 @@ class PurchaseFormRequest extends FormRequest {
      *
      * @return array
      */
-    public function rules() {
+    public function rules()
+    {
         return [
             'supplier_id' => 'nullable|exists:suppliers,id',
             'total' => 'required|numeric|min:0',
@@ -34,15 +37,16 @@ class PurchaseFormRequest extends FormRequest {
         ];
     }
 
-    public function messages() {
+    public function messages()
+    {
         return [
-            'product_id.*.required' => "The product field is required.",
-            'quantity.*.required' => "The quantity field is required.",
-            'quantity.*.min' => "The quantity must be greater than or equal to :min .",
-            'unit_price.*.required' => "The unit price field is required.",
-            'unit_price.*.min' => "The unit price must be greater than or equal to :min .",
-            'sub_total.*.required' => "The product field is required.",
-            'sub_total.*.min' => "The sub total must be greater than or equal to :min .",
+            'product_id.*.required' => 'The product field is required.',
+            'quantity.*.required' => 'The quantity field is required.',
+            'quantity.*.min' => 'The quantity must be greater than or equal to :min .',
+            'unit_price.*.required' => 'The unit price field is required.',
+            'unit_price.*.min' => 'The unit price must be greater than or equal to :min .',
+            'sub_total.*.required' => 'The product field is required.',
+            'sub_total.*.min' => 'The sub total must be greater than or equal to :min .',
         ];
     }
 }

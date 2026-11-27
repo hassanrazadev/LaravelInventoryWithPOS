@@ -8,8 +8,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
-class CategoryController extends Controller implements HasMiddleware{
-
+class CategoryController extends Controller implements HasMiddleware
+{
     private $category;
 
     public static function middleware(): array
@@ -24,19 +24,19 @@ class CategoryController extends Controller implements HasMiddleware{
 
     /**
      * CategoryController constructor.
-     * @param Category $category
      */
-    public function __construct(Category $category){
+    public function __construct(Category $category)
+    {
         $this->category = $category;
     }
-
 
     /**
      * Display a listing of the category.
      *
      * @return Response
      */
-    public function index(){
+    public function index()
+    {
         $categories = $this->category->getCategories(null, true);
 
         return view('categories.index', compact('categories'));
@@ -47,7 +47,8 @@ class CategoryController extends Controller implements HasMiddleware{
      *
      * @return Response
      */
-    public function create(){
+    public function create()
+    {
         $data['categories'] = $this->category->getCategories();
 
         return view('categories.create', $data);
@@ -56,14 +57,14 @@ class CategoryController extends Controller implements HasMiddleware{
     /**
      * Store a newly created category in storage.
      *
-     * @param CategoryFormRequest $request
      * @return Response
      */
-    public function store(CategoryFormRequest $request){
+    public function store(CategoryFormRequest $request)
+    {
         $fields = $request->validated();
         $data = $this->category->storeCategory($fields);
 
-        if ($data['status']){
+        if ($data['status']) {
             return redirect()->route('categories.index')->with($data);
         }
 
@@ -73,11 +74,13 @@ class CategoryController extends Controller implements HasMiddleware{
     /**
      * Display the specified resource.
      *
-     * @param string $slug
+     * @param  string  $slug
      * @return Response
      */
-    public function show($slug) {
+    public function show($slug)
+    {
         $data = $this->category->getCategoryBySlug($slug, true);
+
         return view('categories.show', $data);
     }
 
@@ -87,11 +90,13 @@ class CategoryController extends Controller implements HasMiddleware{
      * @param  int  $id
      * @return Response
      */
-    public function edit($id){
+    public function edit($id)
+    {
         $data = $this->category->getCategoryById($id, true);
 
-        if ($data['status']){
+        if ($data['status']) {
             $data['categories'] = $this->category->getCategories($id, true);
+
             return view('categories.edit', $data);
         }
 
@@ -101,17 +106,18 @@ class CategoryController extends Controller implements HasMiddleware{
     /**
      * Update the specified category in storage.
      *
-     * @param CategoryFormRequest $request
-     * @param int $id
+     * @param  int  $id
      * @return Response
      */
-    public function update(CategoryFormRequest $request, $id){
+    public function update(CategoryFormRequest $request, $id)
+    {
         $fields = $request->validated();
         $data = $this->category->updateCategory($fields, $id);
 
-        if ($data['status']){
+        if ($data['status']) {
             return redirect()->route('categories.index')->with($data);
         }
+
         return redirect()->back()->withInput();
     }
 
@@ -121,7 +127,8 @@ class CategoryController extends Controller implements HasMiddleware{
      * @param  int  $id
      * @return Response
      */
-    public function destroy($id){
+    public function destroy($id)
+    {
         $data = $this->category->destroyCategory($id);
 
         return json_encode($data);
@@ -130,10 +137,10 @@ class CategoryController extends Controller implements HasMiddleware{
     /**
      * soft delete of restore specified category
      *
-     * @param $id
      * @return false|string
      */
-    public function deleteOrRestore($id){
+    public function deleteOrRestore($id)
+    {
         $data = $this->category->deleteOrRestore($id);
 
         return json_encode($data);

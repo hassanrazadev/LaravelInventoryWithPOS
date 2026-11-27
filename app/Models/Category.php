@@ -12,12 +12,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class Category extends Model {
-
+class Category extends Model
+{
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'created_by', 'updated_by', 'parent_id', 'category_name', 'category_code', 'category_image', 'category_slug'
+        'created_by', 'updated_by', 'parent_id', 'category_name', 'category_code', 'category_image', 'category_slug',
     ];
 
     // ===================== ORM Definition START ===================== //
@@ -25,35 +25,40 @@ class Category extends Model {
     /**
      * @return BelongsTo
      */
-    public function parent() {
+    public function parent()
+    {
         return $this->belongsTo(Category::class, 'parent_id');
     }
 
     /**
      * @return HasMany
      */
-    public function children(){
+    public function children()
+    {
         return $this->hasMany(Category::class, 'parent_id');
     }
 
     /**
      * @return HasMany
      */
-    public function products() {
+    public function products()
+    {
         return $this->hasMany(Product::class);
     }
 
     /**
      * @return BelongsTo
      */
-    public function createdBy() {
+    public function createdBy()
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 
     /**
      * @return BelongsTo
      */
-    public function updatedBy() {
+    public function updatedBy()
+    {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
@@ -61,9 +66,11 @@ class Category extends Model {
 
     /**
      * format object
+     *
      * @return array
      */
-    public function format(){
+    public function format()
+    {
         return [
             'id' => $this->id,
             'category_image' => asset('storage/'.$this->category_image),
@@ -77,7 +84,7 @@ class Category extends Model {
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
-            'products' => $this->products->map(function ($product){
+            'products' => $this->products->map(function ($product) {
                 return [
                     'id' => $product->id,
                     'created_by' => $product->created_by,
@@ -89,48 +96,50 @@ class Category extends Model {
                     'created_at' => $product->created_at,
 
                 ];
-            })
+            }),
         ];
     }
 
     /**
      * Get all categories with parent and trashed
      *
-     * @param null $exceptId
-     * @param bool $withTrashed
+     * @param  null  $exceptId
+     * @param  bool  $withTrashed
      * @return Collection
      */
-    public function getCategories($exceptId = null, $withTrashed = false) {
+    public function getCategories($exceptId = null, $withTrashed = false)
+    {
         $categories = $this->newQuery()
-            ->when($withTrashed, function ($query){
+            ->when($withTrashed, function ($query) {
                 $query->withTrashed();
             })
-            ->when($exceptId, function ($query) use ($exceptId){
-                $query->where('id', '!=', $exceptId)->where(function ($q) use ($exceptId){
+            ->when($exceptId, function ($query) use ($exceptId) {
+                $query->where('id', '!=', $exceptId)->where(function ($q) use ($exceptId) {
                     $q->where('parent_id', '!=', $exceptId)->orWhere('parent_id', null);
                 });
             })
-            ->when(is_null($exceptId), function ($query){
+            ->when(is_null($exceptId), function ($query) {
                 $query->with([
                     'parent' => function ($parentQ) {
                         $parentQ->withTrashed();
-                    }
+                    },
                 ]);
             })
-            ->get()->map(function ($category){
+            ->get()->map(function ($category) {
                 return $category->format();
             });
+
         return $categories;
     }
 
     /**
      * get specified category by id with parent and trashed
      *
-     * @param $id
-     * @param bool $withTrashed
+     * @param  bool  $withTrashed
      * @return array
      */
-    public function getCategoryById($id, $withTrashed = false) {
+    public function getCategoryById($id, $withTrashed = false)
+    {
         $category = $this->where('id', $id)
             ->when($withTrashed, function ($query) {
                 $query->withTrashed();
@@ -153,21 +162,21 @@ class Category extends Model {
             $data['status'] = false;
             $data['category'] = [];
         }
+
         return $data;
     }
 
     /**
-     * @param string $slug
-     * @param bool $withTrashed
      * @return array
      */
-    public function getCategoryBySlug(string $slug, bool $withTrashed = false) {
+    public function getCategoryBySlug(string $slug, bool $withTrashed = false)
+    {
         $category = $this->where('category_slug', $slug)
-            ->when($withTrashed, function ($query){
+            ->when($withTrashed, function ($query) {
                 $query->withTrashed();
             })
             ->with([
-                'parent' => function ($query){
+                'parent' => function ($query) {
                     $query->withTrashed();
                 },
                 'products',
@@ -177,116 +186,116 @@ class Category extends Model {
             ->first();
 
         $data = [];
-        if ($category){
+        if ($category) {
             $data['status'] = true;
             $data['category'] = $category->format();
-        }else{
+        } else {
             $data['status'] = false;
             $data['category'] = [];
         }
+
         return $data;
     }
 
     /**
-     * @param array $fields
      * @return array
      */
-    public function storeCategory(array $fields) {
+    public function storeCategory(array $fields)
+    {
         $categoryImage = $fields['category_image'];
         $categoryImage = AppUtils::base64ToImage($categoryImage);
-        $imageName = time() . '_' . Str::random(8) . '_category.png';
+        $imageName = time().'_'.Str::random(8).'_category.png';
         $fields['created_by'] = auth()->id();
-        $fields['category_image'] = 'category/' . $imageName;
+        $fields['category_image'] = 'category/'.$imageName;
         $category = $this::create($fields);
 
         $data = [];
         if ($category) {
             $data['status'] = true;
-            $data['message'] = "New category was added";
-            Storage::disk('public')->put('category/' . $imageName, $categoryImage);
+            $data['message'] = 'New category was added';
+            Storage::disk('public')->put('category/'.$imageName, $categoryImage);
         } else {
             $data['status'] = false;
-            $data['message'] = "There is problem adding new category";
+            $data['message'] = 'There is problem adding new category';
         }
 
         return $data;
     }
 
     /**
-     * @param array $fields
-     * @param int $id
      * @return mixed
      */
-    public function updateCategory(array $fields, int $id) {
+    public function updateCategory(array $fields, int $id)
+    {
         $category = $this::withTrashed()->findOrFail($id);
-        if ($category){
-            if (!empty($fields['category_image'])){
+        if ($category) {
+            if (! empty($fields['category_image'])) {
                 $oldImage = $category->category_image;
                 $categoryImage = $fields['category_image'];
                 $categoryImage = AppUtils::base64ToImage($categoryImage);
-                $imageName = time() . '_' . Str::random(8) . '_category.png';
-                $fields['category_image'] = 'category/' . $imageName;
-                Storage::disk('public')->put('category/' . $imageName, $categoryImage);
+                $imageName = time().'_'.Str::random(8).'_category.png';
+                $fields['category_image'] = 'category/'.$imageName;
+                Storage::disk('public')->put('category/'.$imageName, $categoryImage);
                 if ($oldImage && $oldImage !== $fields['category_image'] && Storage::disk('public')->exists($oldImage)) {
                     Storage::disk('public')->delete($oldImage);
                 }
-            }else{
+            } else {
                 unset($fields['category_image']);
             }
 
             $fields['updated_by'] = auth()->id();
             $category->update($fields);
             $data['status'] = true;
-            $data['message'] = "Category was updated";
-        }else{
+            $data['message'] = 'Category was updated';
+        } else {
             $data['status'] = false;
-            $data['message'] = "There is problem updating category";
+            $data['message'] = 'There is problem updating category';
         }
 
         return $data;
     }
 
     /**
-     * @param int $id
      * @return array
      */
-    public function destroyCategory(int $id) {
+    public function destroyCategory(int $id)
+    {
         $category = $this::withTrashed()->where('id', $id)->firstOrFail();
         $data = [];
-        if ($category){
+        if ($category) {
             $oldImage = $category->category_image;
             $category->forceDelete();
             if ($oldImage && Storage::disk('public')->exists($oldImage)) {
                 Storage::disk('public')->delete($oldImage);
             }
             $data['status'] = true;
-            $data['message'] = "Category was deleted";
-        }else{
+            $data['message'] = 'Category was deleted';
+        } else {
             $data['status'] = false;
-            $data['message'] = "There is problem deleting category";
+            $data['message'] = 'There is problem deleting category';
         }
 
         return $data;
     }
 
     /**
-     * @param $id
      * @return array
      */
-    public function deleteOrRestore($id) {
+    public function deleteOrRestore($id)
+    {
         $data = [];
         $category = $this::withTrashed()->findOrFail($id);
-        if ($category){
-            if ($category->trashed()){
+        if ($category) {
+            if ($category->trashed()) {
                 $category->restore();
-            }else{
+            } else {
                 try {
                     $category->delete();
                 } catch (\Exception $e) {
                 }
             }
             $data['status'] = true;
-            $data['message'] = "Category status was updated";
+            $data['message'] = 'Category status was updated';
         }
 
         return $data;
