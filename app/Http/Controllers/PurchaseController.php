@@ -129,7 +129,7 @@ class PurchaseController extends Controller {
      * @param $index
      * @return Factory|View
      */
-    public function productForm($index){
+    public function productForm($index = 0){
         $products = $this->product->getProducts();
         return view('purchases.product-form', [
             'products' => $products,

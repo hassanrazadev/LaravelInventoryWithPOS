@@ -31,7 +31,7 @@
                                 <select class="form-control select2_select select2-hidden-accessible" name="category_id" id="category_id">
                                     <option></option>
                                     @foreach($categories as $cat)
-                                        <option value="{{$cat->id}}" {{isset($product) ? ($product['category_id'] == $cat->id ? 'selected' : '') : (old('category_id') == $cat->id ? 'selected' : '')}}>{{$cat->category_name}}</option>
+                                        <option value="{{$cat['id']}}" {{isset($product) ? ($product['category_id'] == $cat['id'] ? 'selected' : '') : (old('category_id') == $cat['id'] ? 'selected' : '')}}>{{$cat['category_name']}}</option>
                                     @endforeach
                                 </select>
                                 @include('partials._error', ['field' => 'category_id'])

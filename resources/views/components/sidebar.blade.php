@@ -76,7 +76,7 @@
                         @endcan
                         @can('read order')
                             <li>
-                                <a class="{{url()->current() == route('orders.index') ? 'active' : ''}}" href="{{route('purchases.index')}}">Manage Orders</a>
+                                <a class="{{url()->current() == route('orders.index') ? 'active' : ''}}" href="{{route('orders.index')}}">Manage Orders</a>
                             </li>
                         @endcan
                     </ul>

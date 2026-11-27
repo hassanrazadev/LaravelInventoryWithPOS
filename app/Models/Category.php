@@ -4,15 +4,17 @@ namespace App\Models;
 
 use App\Utils\AppUtils;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Category extends Model {
 
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'created_by', 'updated_by', 'parent_id', 'category_name', 'category_code', 'category_image', 'category_slug'
@@ -73,7 +75,7 @@ class Category extends Model {
             'parent_category' => $this->parent ? $this->parent->category_name : '-',
             'parent_id' => $this->parent ? $this->parent->id : '',
             'created_at' => $this->created_at,
-            'updated_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
             'products' => $this->products->map(function ($product){
                 return [
@@ -130,19 +132,24 @@ class Category extends Model {
      */
     public function getCategoryById($id, $withTrashed = false) {
         $category = $this->where('id', $id)
-        ->when($withTrashed, function ($query) use ($id){
-            $query->withTrashed()->where('id', $id)->with([
-                'parent' => function ($query){
+            ->when($withTrashed, function ($query) {
+                $query->withTrashed();
+            })
+            ->with([
+                'parent' => function ($query) {
                     $query->withTrashed();
-                }
-            ]);
-        })->first()->format();
+                },
+                'products',
+                'createdBy',
+                'updatedBy',
+            ])
+            ->first();
 
         $data = [];
-        if ($category){
+        if ($category) {
             $data['status'] = true;
-            $data['category'] = $category;
-        }else{
+            $data['category'] = $category->format();
+        } else {
             $data['status'] = false;
             $data['category'] = [];
         }
@@ -162,13 +169,17 @@ class Category extends Model {
             ->with([
                 'parent' => function ($query){
                     $query->withTrashed();
-                }
+                },
+                'products',
+                'createdBy',
+                'updatedBy',
             ])
-            ->first()->format();
+            ->first();
+
         $data = [];
         if ($category){
             $data['status'] = true;
-            $data['category'] = $category;
+            $data['category'] = $category->format();
         }else{
             $data['status'] = false;
             $data['category'] = [];
@@ -183,7 +194,7 @@ class Category extends Model {
     public function storeCategory(array $fields) {
         $categoryImage = $fields['category_image'];
         $categoryImage = AppUtils::base64ToImage($categoryImage);
-        $imageName = time() . 'category.png';
+        $imageName = time() . '_' . Str::random(8) . '_category.png';
         $fields['created_by'] = auth()->id();
         $fields['category_image'] = 'category/' . $imageName;
         $category = $this::create($fields);
@@ -192,7 +203,7 @@ class Category extends Model {
         if ($category) {
             $data['status'] = true;
             $data['message'] = "New category was added";
-            Storage::disk()->put('category/' . $imageName, $categoryImage);
+            Storage::disk('public')->put('category/' . $imageName, $categoryImage);
         } else {
             $data['status'] = false;
             $data['message'] = "There is problem adding new category";
@@ -209,14 +220,16 @@ class Category extends Model {
     public function updateCategory(array $fields, int $id) {
         $category = $this::withTrashed()->findOrFail($id);
         if ($category){
-            if ($fields['category_image']){
+            if (!empty($fields['category_image'])){
                 $oldImage = $category->category_image;
                 $categoryImage = $fields['category_image'];
                 $categoryImage = AppUtils::base64ToImage($categoryImage);
-                $imageName = time() . 'category.png';
+                $imageName = time() . '_' . Str::random(8) . '_category.png';
                 $fields['category_image'] = 'category/' . $imageName;
-                Storage::disk()->put('category/' . $imageName, $categoryImage);
-                unlink(storage_path('app/public/' . $oldImage));
+                Storage::disk('public')->put('category/' . $imageName, $categoryImage);
+                if ($oldImage && $oldImage !== $fields['category_image'] && Storage::disk('public')->exists($oldImage)) {
+                    Storage::disk('public')->delete($oldImage);
+                }
             }else{
                 unset($fields['category_image']);
             }
@@ -243,7 +256,9 @@ class Category extends Model {
         if ($category){
             $oldImage = $category->category_image;
             $category->forceDelete();
-            unlink(storage_path('app/public/' . $oldImage));
+            if ($oldImage && Storage::disk('public')->exists($oldImage)) {
+                Storage::disk('public')->delete($oldImage);
+            }
             $data['status'] = true;
             $data['message'] = "Category was deleted";
         }else{

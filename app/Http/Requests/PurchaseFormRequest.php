@@ -20,42 +20,29 @@ class PurchaseFormRequest extends FormRequest {
      * @return array
      */
     public function rules() {
-        $rules =  [
-            'total' => 'required',
-            'product_id' => 'required',
-            'quantity' => 'required|min:1',
-            'unit_price' => 'required|min:1',
-            'sub_total' => 'required|min:1',
+        return [
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'total' => 'required|numeric|min:0',
+            'product_id' => 'required|array|min:1',
+            'product_id.*' => 'required|exists:products,id',
+            'quantity' => 'required|array|min:1',
+            'quantity.*' => 'required|integer|min:1',
+            'unit_price' => 'required|array|min:1',
+            'unit_price.*' => 'required|numeric|min:0.01',
+            'sub_total' => 'required|array|min:1',
+            'sub_total.*' => 'required|numeric|min:0.01',
         ];
-
-//        dd($this->request);
-
-        foreach ($this->request->get('product_id') as $key => $val){
-//            dd($key);
-//            $rules['products['.$key.'][product_id]'] = 'required';
-//            $rules['products['.$key.'][quantity]'] = 'required|min:1';
-//            $rules['products['.$key.'][unit_price]'] = 'required|min:1';
-//            $rules['products['.$key.'][sub_total]'] = 'required|min:1';
-            $rules['product_id.'.$key] = 'required';
-            $rules['quantity.'.$key] = 'required|min:1';
-            $rules['unit_price.'.$key] = 'required|min:1';
-            $rules['sub_total.'.$key] = 'required|min:1';
-        }
-
-        return $rules;
     }
 
     public function messages() {
-        $messages = [];
-        foreach ($this->request->get('product_id') as $key => $val){
-            $messages['product_id.'.$key.'.required'] = "The product field is required.";
-            $messages['quantity.'.$key.'.required'] = "The quantity field is required.";
-            $messages['quantity.'.$key.'.min'] = "The quantity must be greater than or equal to :min .";
-            $messages['unit_price.'.$key.'.required'] = "The unit price field is required.";
-            $messages['unit_price.'.$key.'.min'] = "The unit price must be greater than or equal to :min .";
-            $messages['sub_total.'.$key.'.required'] = "The product field is required.";
-            $messages['sub_total.'.$key.'.min'] = "The sub total must be greater than or equal to :min .";
-        }
-        return $messages;
+        return [
+            'product_id.*.required' => "The product field is required.",
+            'quantity.*.required' => "The quantity field is required.",
+            'quantity.*.min' => "The quantity must be greater than or equal to :min .",
+            'unit_price.*.required' => "The unit price field is required.",
+            'unit_price.*.min' => "The unit price must be greater than or equal to :min .",
+            'sub_total.*.required' => "The product field is required.",
+            'sub_total.*.min' => "The sub total must be greater than or equal to :min .",
+        ];
     }
 }

@@ -7,21 +7,21 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Product extends Model{
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id', 'created_by', 'updated_by', 'product_name', 'product_code', 'quantity', 'sale_price', 'product_image', 'product_slug'
     ];
-
-    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
     // ===================== ORM Definition START ===================== //
 
     /**
@@ -125,7 +125,14 @@ class Product extends Model{
         return $this->when($withTrashed, function ($query){
                 $query->withTrashed();
             })
-            ->with('category')
+            ->with([
+                'category' => function ($query) {
+                    $query->withTrashed();
+                },
+                'createdBy',
+                'updatedBy',
+                'purchases.supplier',
+            ])
             ->get()->map(function ($product){
                 return $product->format();
             });
@@ -137,10 +144,10 @@ class Product extends Model{
     public function format(){
         return [
             'id' => $this->id,
-            'category' => $this->category->category_name,
-            'category_id' => $this->category->id,
-            'created_by' => $this->createdBy->name,
-            'updated_by' => $this->updateddBy ? $this->updateddBy->name : '-',
+            'category' => $this->category ? $this->category->category_name : '-',
+            'category_id' => $this->category ? $this->category->id : null,
+            'created_by' => $this->createdBy ? $this->createdBy->name : '-',
+            'updated_by' => $this->updatedBy ? $this->updatedBy->name : '-',
             'product_name' => $this->product_name,
             'product_code' => $this->product_code,
             'product_slug' => $this->product_slug,
@@ -148,7 +155,7 @@ class Product extends Model{
             'quantity' => $this->quantity,
             'sale_price' => $this->sale_price,
             'created_at' => $this->created_at,
-            'updated_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
             'purchases' => $this->purchases->map(function ($purchase){
                 return [
@@ -171,7 +178,7 @@ class Product extends Model{
     public function storeProduct(array $fields) {
         $productImage = $fields['product_image'];
         $productImage = AppUtils::base64ToImage($productImage);
-        $imageName = time() . 'product.png';
+        $imageName = time() . '_' . Str::random(8) . '_product.png';
         $fields['created_by'] = auth()->id();
         $fields['product_image'] = 'product/' . $imageName;
         $product = $this::create($fields);
@@ -180,7 +187,7 @@ class Product extends Model{
         if ($product) {
             $data['status'] = true;
             $data['message'] = "New product was added";
-            Storage::disk()->put('product/' . $imageName, $productImage);
+            Storage::disk('public')->put('product/' . $imageName, $productImage);
         } else {
             $data['status'] = false;
             $data['message'] = "There is problem adding new product";
@@ -197,14 +204,16 @@ class Product extends Model{
     public function updateProduct(array $fields, int $id) {
         $product = $this::withTrashed()->findOrFail($id);
         if ($product){
-            if ($fields['product_image']){
-                $oldImage = $product->category_image;
-                $categoryImage = $fields['product_image'];
-                $categoryImage = AppUtils::base64ToImage($categoryImage);
-                $imageName = time() . 'product.png';
+            if (!empty($fields['product_image'])){
+                $oldImage = $product->product_image;
+                $productImage = $fields['product_image'];
+                $productImage = AppUtils::base64ToImage($productImage);
+                $imageName = time() . '_' . Str::random(8) . '_product.png';
                 $fields['product_image'] = 'product/' . $imageName;
-                Storage::disk()->put('product/' . $imageName, $categoryImage);
-                unlink(storage_path('app/public/' . $oldImage));
+                Storage::disk('public')->put('product/' . $imageName, $productImage);
+                if ($oldImage && $oldImage !== $fields['product_image'] && Storage::disk('public')->exists($oldImage)) {
+                    Storage::disk('public')->delete($oldImage);
+                }
             }else{
                 unset($fields['product_image']);
             }
@@ -231,7 +240,9 @@ class Product extends Model{
         if ($product){
             $oldImage = $product->product_image;
             $product->forceDelete();
-            unlink(storage_path('app/public/' . $oldImage));
+            if ($oldImage && Storage::disk('public')->exists($oldImage)) {
+                Storage::disk('public')->delete($oldImage);
+            }
             $data['status'] = true;
             $data['message'] = "Product was deleted";
         }else{

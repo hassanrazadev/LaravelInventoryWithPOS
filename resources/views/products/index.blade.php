@@ -81,13 +81,17 @@
         $(document).on('change', '.soft-delete-product', function (e) {
             let url = $(this).attr('data-url');
 
-            $.get(url, function (response) {
-                if (JSON.parse(response).status){
-                    showToast('Success', JSON.parse(response).message, 'success');
-                }else {
-                    showToast('Error', JSON.parse(response).message, 'error');
+            $.ajax({
+                url: url,
+                type: 'PATCH',
+                success: function (response) {
+                    if (JSON.parse(response).status){
+                        showToast('Success', JSON.parse(response).message, 'success');
+                    }else {
+                        showToast('Error', JSON.parse(response).message, 'error');
+                    }
                 }
-            })
+            });
         });
 
         $(document).on('click', '.delete-product', function (e) {

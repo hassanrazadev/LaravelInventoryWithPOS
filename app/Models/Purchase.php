@@ -4,16 +4,18 @@ namespace App\Models;
 
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class Purchase extends Model{
 
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'created_by', 'updated_by', 'supplier_id', 'total'
@@ -57,8 +59,9 @@ class Purchase extends Model{
     public function format(){
         return [
             'id' => $this->id,
+            'supplier_id' => $this->supplier_id,
             'supplier' => $this->supplier ? $this->supplier->name : '-',
-            'created_by' => $this->createdBy->name,
+            'created_by' => $this->createdBy ? $this->createdBy->name : '-',
             'updated_by' => $this->updatedBy ? $this->updatedBy->name : '-',
             'no_of_products' => count($this->products),
             'total_quantity' => $this->products->sum('pivot.quantity'),
@@ -135,13 +138,54 @@ class Purchase extends Model{
      * @return array
      */
     public function storePurchase(array $fields) {
-        $data = [];
-        $fields['created_by'] = auth()->id();
-        $purchase = $this::create($fields);
-        if ($purchase){
+        return DB::transaction(function () use ($fields) {
+            $data = [];
+            $fields['created_by'] = auth()->id();
+            $purchase = $this::create($fields);
+            if ($purchase){
+                $totalPrice = 0;
+                $data['status'] = true;
+                $data['message'] = "New purchase was added";
+                for ($i = 0; $i < count($fields['product_id']); $i ++){
+                    $quantity = $fields['quantity'][$i];
+                    $unitPrice = $fields['unit_price'][$i];
+                    $subTotal = $quantity * $unitPrice;
+                    $totalPrice += $subTotal;
+                    // increment product quantity
+                    Product::findOrFail($fields['product_id'][$i])->increment('quantity', $quantity);
+                    // add product purchase detail in purchase_details table
+                    $purchase->products()->attach($fields['product_id'][$i], [
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                        'sub_total' => $subTotal
+                    ]);
+                }
+                $purchase->total = $totalPrice;
+                $purchase->save();
+            }else{
+                $data['status'] = false;
+                $data['message'] = "There is problem adding purchase";
+            }
+            return $data;
+        });
+    }
+
+    /**
+     * @param array $fields
+     * @param int $id
+     * @return mixed
+     */
+    public function updatePurchase(array $fields, int $id) {
+        return DB::transaction(function () use ($fields, $id) {
+            $purchase = $this::withTrashed()->findOrFail($id);
+
+            foreach ($purchase->products()->withTrashed()->get() as $product){
+                $product->decrement('quantity', $product->pivot->quantity);
+            }
+            // detach all products against this purchase
+            $purchase->products()->detach();
+            // attach products with purchase again
             $totalPrice = 0;
-            $data['status'] = true;
-            $data['message'] = "New purchase was added";
             for ($i = 0; $i < count($fields['product_id']); $i ++){
                 $quantity = $fields['quantity'][$i];
                 $unitPrice = $fields['unit_price'][$i];
@@ -156,52 +200,15 @@ class Purchase extends Model{
                     'sub_total' => $subTotal
                 ]);
             }
-            $purchase->total = $totalPrice;
-            $purchase->save();
-        }else{
-            $data['status'] = false;
-            $data['message'] = "There is problem adding purchase";
-        }
-        return $data;
-    }
+            $fields['total'] = $totalPrice;
+            $fields['updated_by'] = auth()->id();
+            $purchase->update($fields);
 
-    /**
-     * @param array $fields
-     * @param int $id
-     * @return mixed
-     */
-    public function updatePurchase(array $fields, int $id) {
-        $purchase = $this::findOrFail($id);
+            $data['status'] = true;
+            $data['message'] = "Purchase was updated";
 
-        foreach ($purchase->products()->get() as $product){
-            $product->decrement('quantity', $product->pivot->quantity);
-        }
-        // detach all products against this purchase
-        $purchase->products()->detach();
-        // attach products with purchase again
-        $totalPrice = 0;
-        for ($i = 0; $i < count($fields['product_id']); $i ++){
-            $quantity = $fields['quantity'][$i];
-            $unitPrice = $fields['unit_price'][$i];
-            $subTotal = $quantity * $unitPrice;
-            $totalPrice += $subTotal;
-            // increment product quantity
-            Product::findOrFail($fields['product_id'][$i])->increment('quantity', $quantity);
-            // add product purchase detail in purchase_details table
-            $purchase->products()->attach($fields['product_id'][$i], [
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'sub_total' => $subTotal
-            ]);
-        }
-        $fields['total'] = $totalPrice;
-        $fields['updated_by'] = auth()->id();
-        $purchase->update($fields);
-
-        $data['status'] = true;
-        $data['message'] = "Purchase was updated";
-
-        return $data;
+            return $data;
+        });
     }
 
     /**
@@ -209,23 +216,25 @@ class Purchase extends Model{
      * @return array
      */
     public function destroyPurchase(int $id) {
-        $purchase = $this::withTrashed()->findOrFail($id);
-        foreach ($purchase->products()->get() as $product){
-            $product->decrement('quantity', $product->pivot->quantity);
-        }
-        $data = [];
-        if ($purchase->forceDelete()){
-            $data['status'] = true;
-            $data['message'] = "Purchase was deleted";
-        }else{
-            foreach ($purchase->products()->get() as $product){
-                $product->increment('quantity', $product->pivot->quantity);
+        return DB::transaction(function () use ($id) {
+            $purchase = $this::withTrashed()->findOrFail($id);
+            foreach ($purchase->products()->withTrashed()->get() as $product){
+                $product->decrement('quantity', $product->pivot->quantity);
             }
-            $data['status'] = false;
-            $data['message'] = "There is problem deleting purchase";
-        }
+            $data = [];
+            if ($purchase->forceDelete()){
+                $data['status'] = true;
+                $data['message'] = "Purchase was deleted";
+            }else{
+                foreach ($purchase->products()->withTrashed()->get() as $product){
+                    $product->increment('quantity', $product->pivot->quantity);
+                }
+                $data['status'] = false;
+                $data['message'] = "There is problem deleting purchase";
+            }
 
-        return $data;
+            return $data;
+        });
     }
 
     /**
