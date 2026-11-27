@@ -28,10 +28,13 @@ class UserController extends Controller
         $data = $this->user->doLogin($fields);
 
         if ($data['status']){
+            $request->session()->regenerate();
             return redirect()->route('dashboard');
         }
 
-        return redirect()->back();
+        return redirect()->back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => $data['message']]);
     }
 
 }

@@ -21,7 +21,7 @@ class CategoryFormRequest extends FormRequest {
      * @return array
      */
     public function rules() {
-        if ($this->method() == "PUT") {
+        if (in_array($this->method(), ['PUT', 'PATCH'])) {
             $imageRule = 'nullable';
         }else{
             $imageRule = 'required';
@@ -31,7 +31,7 @@ class CategoryFormRequest extends FormRequest {
             'category_code' => 'required|min:3|unique:categories,category_code,'.$this->category,
             'category_image' => $imageRule,
             'category_slug' => 'required|min:3|unique:categories,category_slug,'.$this->category,
-            'parent_id' => 'nullable'
+            'parent_id' => 'nullable|exists:categories,id'
         ];
     }
 }

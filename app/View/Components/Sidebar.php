@@ -20,10 +20,11 @@ class Sidebar extends Component
      */
     public function __construct(){
         $user = auth()->user();
+        $role = $user ? $user->roles()->first() : null;
         $this->user = [
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->roles()->first()->name
+            'name' => $user ? $user->name : '',
+            'email' => $user ? $user->email : '',
+            'role' => $role ? $role->name : 'user',
         ];
     }
 
@@ -37,7 +38,7 @@ class Sidebar extends Component
     }
 
     public function activeNav(){
-        $activeNav = Route::currentRouteName();
+        $activeNav = Route::currentRouteName() ?? '';
         $activeNav = explode('.', $activeNav);
         $activeNav = $activeNav[0];
         return $activeNav;

@@ -17,7 +17,7 @@
     @include('partials._crop-image-modal')
 
     <div class="page-heading">
-        <h1 class="page-title">Edi Category</h1>
+        <h1 class="page-title">Edit Category</h1>
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
                 <a href="{{route('dashboard')}}"><i class="fa fa-home font-20"></i></a>

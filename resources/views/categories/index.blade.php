@@ -82,13 +82,17 @@
             let url = $(this).attr('data-url');
             let children = $('[data-parent="'+$(this).parents('tr').attr('data-index')+'"]');
 
-            $.get(url, function (response) {
-                if (JSON.parse(response).status){
-                    showToast('Success', JSON.parse(response).message, 'success');
-                }else {
-                    showToast('Error', JSON.parse(response).message, 'error');
+            $.ajax({
+                url: url,
+                type: 'PATCH',
+                success: function (response) {
+                    if (JSON.parse(response).status){
+                        showToast('Success', JSON.parse(response).message, 'success');
+                    }else {
+                        showToast('Error', JSON.parse(response).message, 'error');
+                    }
                 }
-            })
+            });
         });
 
         $(document).on('click', '.delete-category', function (e) {

@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,34 +20,34 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => ['user']], function () {
-    Route::get('/', 'HomeController@index')->name('dashboard');
+    Route::get('/', [HomeController::class, 'index'])->name('dashboard');
 
     // categories
-    Route::resource('categories', 'CategoryController');
+    Route::resource('categories', CategoryController::class);
     Route::prefix('categories')->group(function (){
-        Route::get('/delete-or-restore/{category}', 'CategoryController@deleteOrRestore')->name('categories.delete');
+        Route::patch('/delete-or-restore/{category}', [CategoryController::class, 'deleteOrRestore'])->name('categories.delete');
     });
 
     // products
-    Route::resource('products', 'ProductController');
+    Route::resource('products', ProductController::class);
     Route::prefix('products')->group(function (){
-        Route::get('/delete-or-restore/{product}', 'ProductController@deleteOrRestore')->name('products.delete');
+        Route::patch('/delete-or-restore/{product}', [ProductController::class, 'deleteOrRestore'])->name('products.delete');
     });
 
     // purchases
-    Route::resource('purchases', 'PurchaseController');
+    Route::resource('purchases', PurchaseController::class);
     Route::prefix('purchases')->group(function (){
-        Route::get('/delete-or-restore/{purchase}', 'PurchaseController@deleteOrRestore')->name('purchases.delete');
-        Route::get('/product-form/{index?}', 'PurchaseController@productForm')->name('purchases.productForm');
+        Route::patch('/delete-or-restore/{purchase}', [PurchaseController::class, 'deleteOrRestore'])->name('purchases.delete');
+        Route::get('/product-form/{index?}', [PurchaseController::class, 'productForm'])->name('purchases.productForm');
     });
 
     // orders
-    Route::resource('orders', 'OrderController');
+    Route::resource('orders', OrderController::class);
     Route::prefix('orders')->group(function (){
-        Route::get('/delete-or-restore/{order}', 'OrderController@deleteOrRestore')->name('purchases.delete');
+        Route::patch('/delete-or-restore/{order}', [OrderController::class, 'deleteOrRestore'])->name('orders.delete');
     });
 });
 
 
 Route::view('user/login', 'user.login')->name('user.login');
-Route::post('user/do-login', 'UserController@doLogin')->name('user.doLogin');
+Route::post('user/do-login', [UserController::class, 'doLogin'])->name('user.doLogin');

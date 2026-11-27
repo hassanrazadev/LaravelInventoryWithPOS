@@ -20,16 +20,16 @@ class ProductFormRequest extends FormRequest {
      * @return array
      */
     public function rules() {
-        if ($this->method() == "PUT") {
+        if (in_array($this->method(), ['PUT', 'PATCH'])) {
             $imageRule = 'nullable';
         }else{
             $imageRule = 'required';
         }
         return [
-            'category_id' => 'required',
+            'category_id' => 'required|exists:categories,id',
             'product_name' => 'required|min:5',
             'product_code' => 'required|min:5|unique:products,product_code,'.$this->product,
-            'sale_price' => 'required|min:1',
+            'sale_price' => 'required|numeric|min:1',
             'product_image' => $imageRule,
             'product_slug' => 'required|unique:products,product_slug,'.$this->product,
         ];

@@ -8,11 +8,16 @@
 
 @section('content')
     <div class="brand">
-        <span >{{env('APP_NAME', 'IMS-POS')}}</span>
+        <span >{{config('app.name', 'IMS-POS')}}</span>
     </div>
     <form id="login-form" action="{{route('user.doLogin')}}" method="post">
         @csrf
         <h2 class="login-title">Log in</h2>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                {{ $errors->first() }}
+            </div>
+        @endif
         <div class="form-group">
             <div class="input-group-icon right">
                 <div class="input-icon"><i class="fa fa-envelope"></i></div>
@@ -60,4 +65,5 @@
                 },
             });
         });
+    </script>
 @endsection
