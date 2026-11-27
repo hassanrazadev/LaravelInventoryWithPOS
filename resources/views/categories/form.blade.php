@@ -44,11 +44,14 @@
                                 @include('partials._error', ['field' => 'category_slug'])
                             </div>
                         </div>
-                        <div class="form-group required row">
+                        <div class="form-group {{ isset($category) ? '' : 'required' }} row">
                             <label for="category_image_picker" class="col-sm-3 col-form-label">Category Image:</label>
                             <div class="col-sm-9">
                                 <input class="form-control {{\App\Utils\AppUtils::inputFieldError($errors, 'category_image')}}"  id="category_image_picker" type="file" accept=".png, .jpg">
                                 <input type="text" style="position: absolute; z-index: -1" name="category_image" value="" id="category_image">
+                                @if(isset($category))
+                                    <small class="form-text text-muted">Leave blank to keep the current image.</small>
+                                @endif
                                 @include('partials._error', ['field' => 'category_image'])
                             </div>
                         </div>

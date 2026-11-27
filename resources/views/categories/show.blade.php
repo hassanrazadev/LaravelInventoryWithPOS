@@ -64,7 +64,7 @@
                         </div>
                     </div>
                 </div>
-                <h6 class="m-b-20 m-t-20"><i class="fa fa-cubes"></i>Products</h6>
+                <h6 class="m-b-20 m-t-20"><i class="fa fa-cubes mr-2"></i>Products</h6>
                 <table id="products-table" class="table table-striped table-hover">
                     <thead>
                     <tr>

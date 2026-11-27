@@ -8,14 +8,12 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
         $this->call([
-            RolesTableSeeder::class,
             PermissionsTableSeeder::class,
+            RolesTableSeeder::class,
             CreateAdminSeeder::class,
         ]);
 

@@ -51,11 +51,14 @@
                                 @include('partials._error', ['field' => 'sale_price'])
                             </div>
                         </div>
-                        <div class="form-group required row">
+                        <div class="form-group {{ isset($product) ? '' : 'required' }} row">
                             <label for="product_image_picker" class="col-sm-3 col-form-label">Product Image:</label>
                             <div class="col-sm-9">
                                 <input class="form-control {{\App\Utils\AppUtils::inputFieldError($errors, 'product_image')}}"  id="product_image_picker" type="file" accept=".png, .jpg">
                                 <input type="text" style="position: absolute; z-index: -1" name="product_image" value="" id="product_image">
+                                @if(isset($product))
+                                    <small class="form-text text-muted">Leave blank to keep the current image.</small>
+                                @endif
                                 @include('partials._error', ['field' => 'product_image'])
                             </div>
                         </div>

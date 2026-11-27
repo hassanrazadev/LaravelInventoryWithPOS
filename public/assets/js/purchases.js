@@ -12,7 +12,11 @@ $(document).on('click', '.add-product', function (e) {
 });
 
 $(document).on('click', '.remove-product', function (e) {
+    e.preventDefault();
+    $(this).tooltip('dispose');
+    $('.tooltip').remove();
     $('.product-row[data-index="'+$(this).data('index')+'"]').remove();
+    $('.sub_total').trigger('change');
 });
 
 function callSelect2Plugin() {

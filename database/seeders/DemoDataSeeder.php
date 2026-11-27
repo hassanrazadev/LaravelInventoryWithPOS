@@ -22,6 +22,28 @@ class DemoDataSeeder extends Seeder
     {
         $admin = User::where('email', 'admin@test.com')->firstOrFail();
 
+        $manager = User::withTrashed()->firstOrCreate(
+            ['email' => 'manager@test.com'],
+            [
+                'name' => 'Store Manager',
+                'email_verified_at' => now(),
+                'password' => bcrypt('123456'),
+                'created_by' => $admin->id,
+            ]
+        );
+        $manager->syncRoles(['manager']);
+
+        $cashier = User::withTrashed()->firstOrCreate(
+            ['email' => 'cashier@test.com'],
+            [
+                'name' => 'POS Cashier',
+                'email_verified_at' => now(),
+                'password' => bcrypt('123456'),
+                'created_by' => $admin->id,
+            ]
+        );
+        $cashier->syncRoles(['cashier']);
+
         $categoriesData = [
             [
                 'name' => 'Electronics',

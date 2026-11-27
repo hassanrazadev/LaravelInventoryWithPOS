@@ -2,33 +2,30 @@
 
 namespace App\View\Components;
 
+use App\Utils\AppUtils;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-class Header extends Component {
+class Header extends Component
+{
+    public array $user;
 
-    public $user;
-
-    /**
-     * Create a new component instance.
-     *
-     * @return void
-     */
-    public function __construct() {
+    public function __construct()
+    {
         $user = auth()->user();
+        $role = $user ? $user->roles()->first() : null;
+        $name = $user ? $user->name : '';
+
         $this->user = [
-            'name' => $user->name,
-            'email' => $user->email,
+            'name' => $name,
+            'email' => $user ? $user->email : '',
+            'role' => $role ? $role->name : 'user',
+            'initials' => AppUtils::initials($name),
         ];
     }
 
-    /**
-     * Get the view / contents that represent the component.
-     *
-     * @return View|string
-     */
-    public function render() {
+    public function render(): View|string
+    {
         return view('components.header');
     }
-
 }

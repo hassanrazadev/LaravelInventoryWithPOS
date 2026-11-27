@@ -9,9 +9,11 @@ use App\Models\Supplier;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\View\View;
 
-class PurchaseController extends Controller {
+class PurchaseController extends Controller implements HasMiddleware {
 
     /**
      * @var Purchase
@@ -21,6 +23,17 @@ class PurchaseController extends Controller {
      * @var Product
      */
     private $product;
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:read purchase', only: ['index', 'show']),
+            new Middleware('permission:create purchase', only: ['create', 'store']),
+            new Middleware('permission:create purchase|update purchase', only: ['productForm']),
+            new Middleware('permission:update purchase', only: ['edit', 'update']),
+            new Middleware('permission:delete purchase', only: ['destroy', 'deleteOrRestore']),
+        ];
+    }
 
     /**
      * PurchaseController constructor.
