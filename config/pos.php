@@ -7,13 +7,13 @@ return [
     'receipt_footer' => env('POS_RECEIPT_FOOTER', 'Thank you for your business!'),
 
     'printer' => [
-        'driver' => env('POS_PRINTER_DRIVER', 'tcp'),
+        'driver' => env('POS_PRINTER_DRIVER', 'browser'),
         'host' => env('POS_PRINTER_HOST', '127.0.0.1'),
         'port' => (int) env('POS_PRINTER_PORT', 9100),
         'http_path' => env('POS_PRINTER_HTTP_PATH', '/'),
         'http_format' => env('POS_PRINTER_HTTP_FORMAT', 'escpos'),
         'paper_width' => (int) env('POS_PRINTER_WIDTH', 80),
-        'open_cash_drawer' => filter_var(env('POS_OPEN_CASH_DRAWER', true), FILTER_VALIDATE_BOOLEAN),
+        'open_cash_drawer' => filter_var(env('POS_OPEN_CASH_DRAWER', false), FILTER_VALIDATE_BOOLEAN),
         'timeout' => (int) env('POS_PRINTER_TIMEOUT', 3),
     ],
 ];

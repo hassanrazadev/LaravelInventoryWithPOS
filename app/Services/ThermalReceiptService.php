@@ -280,7 +280,7 @@ class ThermalReceiptService
             'paper_width' => $paperWidth === 58 ? 58 : 80,
             'open_cash_drawer' => array_key_exists('open_cash_drawer', $options)
                 ? (bool) $options['open_cash_drawer']
-                : (bool) ($defaults['open_cash_drawer'] ?? true),
+                : (bool) ($defaults['open_cash_drawer'] ?? false),
             'timeout' => max(1, min(15, (int) ($options['timeout'] ?? $defaults['timeout'] ?? 3))),
         ];
     }

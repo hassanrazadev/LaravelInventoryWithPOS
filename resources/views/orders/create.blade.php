@@ -17,7 +17,13 @@
         <div class="pos-topbar-actions">
             <button type="button" class="btn btn-light border btn-sm pos-printer-pill" id="pos-printer-settings-btn" data-toggle="modal" data-target="#pos-printer-settings-modal">
                 <i class="fa fa-print text-primary mr-1"></i>
-                <span id="pos-printer-summary">Printer: {{ $printerConfig['host'] ?? '127.0.0.1' }}:{{ $printerConfig['port'] ?? 9100 }} · {{ $printerConfig['paper_width'] ?? 80 }}mm</span>
+                <span id="pos-printer-summary">
+                    @if(($printerConfig['driver'] ?? 'browser') === 'browser')
+                        Browser Print · {{ $printerConfig['paper_width'] ?? 80 }}mm
+                    @else
+                        {{ $printerConfig['host'] ?? '127.0.0.1' }}:{{ $printerConfig['port'] ?? 9100 }} · {{ $printerConfig['paper_width'] ?? 80 }}mm
+                    @endif
+                </span>
             </button>
             @can('read order')
                 <a href="{{ route('orders.index') }}" class="btn btn-light border btn-sm">
@@ -223,7 +229,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="posPrinterSettingsLabel"><i class="fa fa-print text-primary mr-2"></i>Thermal Receipt Printer</h5>
+                    <h5 class="modal-title" id="posPrinterSettingsLabel"><i class="fa fa-print text-primary mr-2"></i>Receipt Printer Settings</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -234,9 +240,9 @@
                         <div class="form-group">
                             <label for="printer_driver">Print Transport</label>
                             <select id="printer_driver" class="form-control">
-                                <option value="tcp">Raw ESC/POS TCP Socket (Virtual / LAN Printer)</option>
-                                <option value="http">HTTP POST Bridge (Virtual Printer HTTP Endpoint)</option>
-                                <option value="browser">Browser Print Dialog (80mm / 58mm Thermal CSS)</option>
+                                <option value="browser">Browser Print Dialog (Default — 80mm / 58mm Thermal CSS)</option>
+                                <option value="tcp">Raw ESC/POS TCP Socket (Optional — LAN Thermal Printer)</option>
+                                <option value="http">HTTP POST Bridge (Optional — Local Print Server)</option>
                             </select>
                         </div>
                         <div id="pos-printer-network-fields">
@@ -244,7 +250,7 @@
                                 <div class="col-sm-8">
                                     <div class="form-group mb-1">
                                         <label for="printer_host">Printer Host / IP</label>
-                                        <input type="text" id="printer_host" class="form-control" placeholder="127.0.0.1">
+                                        <input type="text" id="printer_host" class="form-control" placeholder="192.168.1.50">
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
@@ -254,7 +260,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <small class="form-text text-muted mb-3">Standard ESC/POS TCP port is 9100 (Virtual Printer Suite UI on :8000 receives ESC/POS jobs on 127.0.0.1:9100).</small>
+                            <small class="form-text text-muted mb-3">Optional: enter your LAN ESC/POS thermal printer IP and port (typically 9100). Restricted to localhost and private LAN IPs.</small>
                             <div class="row d-none" id="pos-printer-http-fields">
                                 <div class="col-sm-6">
                                     <div class="form-group">

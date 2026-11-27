@@ -13,7 +13,7 @@
             </ol>
         </div>
         <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
-            <button type="button" class="btn btn-success" id="order-thermal-print-btn" data-url="{{ route('orders.printThermal', $order->id) }}">
+            <button type="button" class="btn btn-success {{ config('pos.printer.driver', 'browser') === 'browser' ? 'd-none' : '' }}" id="order-thermal-print-btn" data-url="{{ route('orders.printThermal', $order->id) }}">
                 <i class="fa fa-bolt mr-1"></i> Thermal Print
             </button>
             <a href="{{ route('orders.receipt', $order->id) }}" target="_blank" class="btn btn-primary">
@@ -184,15 +184,22 @@
     <script type="text/javascript">
         (function ($) {
             const defaultPrinter = @json(config('pos.printer'));
-            $('#order-thermal-print-btn').on('click', function () {
+            let savedSettings = {};
+            try {
+                savedSettings = JSON.parse(localStorage.getItem('ims_pos_printer_settings_v3') || '{}');
+            } catch (e) {
+                savedSettings = {};
+            }
+            const activeDriver = savedSettings.driver || defaultPrinter.driver || 'browser';
+            const $thermalBtn = $('#order-thermal-print-btn');
+            if (activeDriver === 'tcp' || activeDriver === 'http') {
+                $thermalBtn.removeClass('d-none');
+            }
+
+            $thermalBtn.on('click', function () {
                 const $btn = $(this);
                 const url = $btn.attr('data-url');
-                let saved = {};
-                try {
-                    saved = JSON.parse(localStorage.getItem('ims_pos_printer_settings_v2') || '{}');
-                } catch (e) {
-                    saved = {};
-                }
+                const saved = savedSettings;
                 const payload = {
                     driver: saved.driver === 'http' ? 'http' : (defaultPrinter.driver === 'http' ? 'http' : 'tcp'),
                     host: saved.host || defaultPrinter.host || '127.0.0.1',

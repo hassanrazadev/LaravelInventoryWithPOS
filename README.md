@@ -6,7 +6,7 @@
 [![Code Style: Laravel Pint](https://img.shields.io/badge/Code%20Style-Laravel%20Pint-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/docs/pint)
 [![License: MIT](https://img.shields.io/badge/License-MIT-10b981.svg)](LICENSE)
 
-An open-source Inventory Management System and Point of Sale (POS) web application built on **Laravel 13**, **Spatie Laravel Permission**, **MySQL / SQLite**, a clean modern UI with flat single-click navigation, and direct **ESC/POS thermal receipt printing + cash drawer control**.
+An open-source Inventory Management System and Point of Sale (POS) web application built on **Laravel 13**, **Spatie Laravel Permission**, **MySQL / SQLite**, a clean modern UI with flat single-click navigation, `80mm`/`58mm` receipt printing, and optional LAN ESC/POS thermal printer integration.
 
 ---
 
@@ -17,9 +17,6 @@ An open-source Inventory Management System and Point of Sale (POS) web applicati
 
 ### Modern POS Terminal & Sticky Checkout Rail
 ![POS Terminal with Live Product Grid and Checkout Rail](docs/screenshots/pos-terminal.png)
-
-### Live ESC/POS Thermal Receipt & Cash Drawer Output (Virtual Printer Suite)
-![Live Thermal Receipt and Cash Drawer Output on Port 9100](docs/screenshots/thermal-printer-output.png)
 
 ### Standalone 80mm / 58mm Thermal Receipt Preview
 ![Standalone 80mm and 58mm Thermal Receipt Preview](docs/screenshots/receipt-preview.png)
@@ -42,11 +39,10 @@ An open-source Inventory Management System and Point of Sale (POS) web applicati
   - Responsive product catalog grid with category filter pills & item counts, **In Stock** toggle, live name/SKU search, and Enter-to-add barcode/SKU scanning.
   - Sticky `430px` checkout rail with compact 2-row card cart items, quantity steppers, discount (`$`), percentage tax (`%`), collapsible counter note, payment method pills (`Cash`, `Card`, `Bank`, `Other`), quick `$5 / $10 / $20 / $50 / $100` tender chips, live change-due calculation, and paired **Complete Sale** + **Pay & Print** actions.
   - Inline Quick-Add Customer modal without losing the active cart.
-  - Atomic database checkout with row-level locking (`lockForUpdate`), standalone printable receipts (`/orders/{id}/receipt`), order cancellation with stock restoration, and soft-delete safeguards.
-- **Thermal Receipt Printing & Hardware Support**
-  - Configurable POS Printer Settings modal (`127.0.0.1:9100 · 80mm` default) with persisted preferences, `80mm` (`48` cols) / `58mm` (`32` cols) layouts, and one-click **Send Test Print**.
-  - Supports **Raw ESC/POS TCP Sockets** (compatible with LAN thermal printers and [Virtual Printer Suite](http://localhost:8000)), **HTTP POST Bridge** (`escpos` raw bytes or plain text), and **Browser Print Dialog** (`80mm`/`58mm` `@page` thermal CSS).
-  - Optional **ESC/POS Cash Drawer Pin 2 kick** (`ESC p 0 25 250` / `\x1B\x70\x00\x19\xFA`) triggered on Cash sales.
+  - Atomic database checkout with row-level locking (`lockForUpdate`), standalone printable `80mm`/`58mm` receipts (`/orders/{id}/receipt`), order cancellation with stock restoration, and soft-delete safeguards.
+- **Receipt Printing & Optional ESC/POS Hardware Support**
+  - Built-in **Browser Print** (`80mm` / `58mm` `@page` thermal CSS) enabled by default with zero external hardware or software dependencies.
+  - **Optional** direct **Raw ESC/POS TCP Socket** (typically port `9100` for LAN receipt printers), **HTTP POST Bridge**, and opt-in **ESC/POS Cash Drawer Pin 2 kick** (`ESC p 0 25 250`) configurable via `.env` or POS **Receipt Printer Settings**.
 - **Inventory, Purchasing, Contacts & Operations**
   - **Categories** and **Products** CRUD with parent/child hierarchy, unique SKUs, stock tracking, and Cropper.js image uploads.
   - **Purchases** CRUD linked to **Suppliers** with transactional stock updates and delete protection when purchases exist.
@@ -57,26 +53,22 @@ An open-source Inventory Management System and Point of Sale (POS) web applicati
 
 ---
 
-## Thermal Receipt Printing & Hardware Setup
+## Receipt Printing & Optional ESC/POS Hardware Configuration
 
-POS thermal printing is managed by `App\Services\ThermalReceiptService` and configured in [config/pos.php](config/pos.php):
+By default, IMS-POS uses **Browser Print (`browser`)**, so production deployments work out of the box without any printer daemon or LAN hardware. Direct ESC/POS socket/HTTP printing (`App\Services\ThermalReceiptService`, configured in [config/pos.php](config/pos.php)) is strictly **optional** for counters equipped with LAN thermal printers:
 
 | Environment Variable | Default | Description |
 | --- | --- | --- |
-| `POS_STORE_NAME` | `"${APP_NAME}"` | Store title printed at the top of ESC/POS and browser receipts |
-| `POS_PRINTER_DRIVER` | `tcp` | Default transport: `tcp` (raw ESC/POS socket) or `http` (POST bridge) |
-| `POS_PRINTER_HOST` | `127.0.0.1` | Target thermal printer IP / localhost |
-| `POS_PRINTER_PORT` | `9100` | ESC/POS TCP socket port (`9100` standard; matches Virtual Printer Suite while its UI runs on `:8000`) |
+| `POS_STORE_NAME` | `"${APP_NAME}"` | Store title printed at the top of receipts |
+| `POS_PRINTER_DRIVER` | `browser` | `browser` (default, no hardware required), `tcp` (optional LAN ESC/POS), or `http` (optional bridge) |
+| `POS_PRINTER_HOST` | `127.0.0.1` | Optional LAN thermal printer IP / localhost when `tcp` or `http` is enabled |
+| `POS_PRINTER_PORT` | `9100` | Optional ESC/POS TCP socket port (standard `9100`) |
 | `POS_PRINTER_WIDTH` | `80` | Thermal paper roll width in mm: `80` (`48` columns) or `58` (`32` columns) |
-| `POS_OPEN_CASH_DRAWER` | `true` | Append ESC/POS Pin 2 solenoid pulse (`1B 70 00 19 FA`) on Cash sales |
+| `POS_OPEN_CASH_DRAWER` | `false` | Optional ESC/POS Pin 2 solenoid pulse (`1B 70 00 19 FA`) on Cash sales when using `tcp`/`http` |
 
-### Testing with a Virtual Thermal Printer
+> **Local Development Testing Note:** If you test raw ESC/POS payloads locally during development using an external virtual printer emulator or simulator, keep it strictly in your local dev/test environment — it is a separate testing tool, is **not bundled with IMS-POS**, and must **not** be deployed to production. Keep `POS_PRINTER_DRIVER=browser` for standard production builds unless connecting to a real LAN thermal printer.
 
-1. Start your virtual thermal printer (for example **Virtual Printer Suite** serving its web UI on `http://localhost:8000` and listening for raw ESC/POS jobs on `127.0.0.1:9100`).
-2. Open `/orders/create`, click the printer status pill (`127.0.0.1:9100 · 80mm`) in the POS topbar, verify the transport/host/port/width settings, and click **Send Test Print**.
-3. Use **Pay & Print** at checkout or **Thermal Print** on any order or receipt page to emit ESC/POS receipts and trigger the cash drawer pulse on Cash transactions.
-
-> **SSRF Security:** `ThermalReceiptService::isAllowedPrinterHost()` permits only loopback hosts (`127.0.0.1`, `localhost`, `::1`), the configured `POS_PRINTER_HOST`, and private RFC1918 LAN IPv4 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). Public IPs, link-local metadata ranges (`169.254.0.0/16`), and arbitrary domains are rejected with HTTP `422`.
+> **SSRF Security:** When optional `tcp` or `http` printing is enabled, `ThermalReceiptService::isAllowedPrinterHost()` permits only loopback hosts (`127.0.0.1`, `localhost`, `::1`), the configured `POS_PRINTER_HOST`, and private RFC1918 LAN IPv4 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`). Public IPs, link-local metadata ranges (`169.254.0.0/16`), and arbitrary domains are rejected with HTTP `422`.
 
 ---
 
@@ -85,7 +77,7 @@ POS thermal printing is managed by `App\Services\ThermalReceiptService` and conf
 | Module | Controllers / Services | Key Routes |
 | --- | --- | --- |
 | **Dashboard & Profile** | `HomeController`, `ProfileController` | `/`, `/profile` |
-| **POS, Orders & Thermal Print** | `OrderController`, `ThermalReceiptService` | `/orders`, `/orders/create`, `/orders/{order}/receipt`, `/orders/{order}/print-thermal`, `/orders/pos/printer/test` |
+| **POS, Orders & Receipts** | `OrderController`, `ThermalReceiptService` | `/orders`, `/orders/create`, `/orders/{order}/receipt`, `/orders/{order}/print-thermal`, `/orders/pos/printer/test` |
 | **Catalog & Inventory** | `CategoryController`, `ProductController` | `/categories`, `/products` |
 | **Purchasing & Contacts** | `PurchaseController`, `SupplierController`, `CustomerController` | `/purchases`, `/suppliers`, `/customers` |
 | **Operations & Adjustments** | `ExpenseController`, `SaleReturnController` | `/expenses`, `/returns` |
@@ -129,7 +121,7 @@ POS thermal printing is managed by `App\Services\ThermalReceiptService` and conf
    cp .env.example .env
    php artisan key:generate
    ```
-   Update `DB_*` credentials in `.env` for your local MySQL database (or switch `DB_CONNECTION=sqlite`), and adjust `POS_*` settings if your thermal printer uses a non-default port or paper width.
+   Update `DB_*` credentials in `.env` for your local MySQL database (or switch `DB_CONNECTION=sqlite`). Leave `POS_PRINTER_DRIVER=browser` for standard browser receipt printing, or optionally configure `tcp`/`http` if connecting a physical LAN ESC/POS printer.
 
 4. **Create storage symlink & migrate + seed database**
    ```bash
@@ -142,7 +134,7 @@ POS thermal printing is managed by `App\Services\ThermalReceiptService` and conf
    ```bash
    php artisan serve
    ```
-   Open [http://127.0.0.1:8000](http://127.0.0.1:8000) (or `--port=8001` if running Virtual Printer Suite on `:8000`).
+   Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 ---
 

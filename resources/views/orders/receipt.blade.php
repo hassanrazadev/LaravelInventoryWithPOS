@@ -23,7 +23,7 @@
             margin: 0;
         }
         .receipt-toolbar {
-            max-width: 460px;
+            max-width: 520px;
             margin: 0 auto 14px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #ffffff;
@@ -155,7 +155,7 @@
                 </div>
             </div>
             <div class="d-flex align-items-center" style="gap: 6px;">
-                <button type="button" class="btn btn-sm btn-success" id="receipt-thermal-print-btn">
+                <button type="button" class="btn btn-sm btn-success {{ ($printerConfig['driver'] ?? 'browser') === 'browser' ? 'd-none' : '' }}" id="receipt-thermal-print-btn">
                     <i class="fa fa-bolt mr-1"></i> Thermal Print
                 </button>
                 <button type="button" class="btn btn-sm btn-primary" onclick="window.print();">
@@ -264,14 +264,19 @@
             const $statusBox = $('#receipt-print-status');
             const $thermalBtn = $('#receipt-thermal-print-btn');
 
-            function loadPrinterSettings() {
-                let saved = {};
+            function getSavedPrinter() {
                 try {
-                    saved = JSON.parse(localStorage.getItem('ims_pos_printer_settings_v2') || '{}');
+                    return JSON.parse(localStorage.getItem('ims_pos_printer_settings_v3') || '{}');
                 } catch (e) {
-                    saved = {};
+                    return {};
                 }
-                const driver = saved.driver === 'http' ? 'http' : (defaultPrinter.driver === 'http' ? 'http' : 'tcp');
+            }
+
+            function loadPrinterSettings() {
+                const saved = getSavedPrinter();
+                const driver = ['tcp', 'http'].includes(saved.driver)
+                    ? saved.driver
+                    : (['tcp', 'http'].includes(defaultPrinter.driver) ? defaultPrinter.driver : 'tcp');
 
                 return {
                     driver: driver,
@@ -284,6 +289,13 @@
                         ? Boolean(saved.open_cash_drawer)
                         : (defaultPrinter.open_cash_drawer !== undefined ? Boolean(defaultPrinter.open_cash_drawer) : false)
                 };
+            }
+
+            const initialDriver = getSavedPrinter().driver || defaultPrinter.driver || 'browser';
+            if (initialDriver === 'tcp' || initialDriver === 'http') {
+                $thermalBtn.removeClass('d-none');
+            } else {
+                $thermalBtn.addClass('d-none');
             }
 
             $thermalBtn.on('click', function () {

@@ -2,7 +2,7 @@
     'use strict';
 
     const config = window.POS_CONFIG || {};
-    const PRINTER_STORAGE_KEY = 'ims_pos_printer_settings_v2';
+    const PRINTER_STORAGE_KEY = 'ims_pos_printer_settings_v3';
 
     let catalog = Array.isArray(config.products) ? config.products : [];
     const cart = new Map();
@@ -87,7 +87,7 @@
 
         const driver = ['tcp', 'http', 'browser'].includes(saved.driver)
             ? saved.driver
-            : (['tcp', 'http', 'browser'].includes(defaults.driver) ? defaults.driver : 'tcp');
+            : (['tcp', 'http', 'browser'].includes(defaults.driver) ? defaults.driver : 'browser');
 
         return {
             driver: driver,
@@ -98,7 +98,7 @@
             paper_width: Number(saved.paper_width || defaults.paper_width || 80) === 58 ? 58 : 80,
             open_cash_drawer: saved.open_cash_drawer !== undefined
                 ? Boolean(saved.open_cash_drawer)
-                : (defaults.open_cash_drawer !== undefined ? Boolean(defaults.open_cash_drawer) : true),
+                : (defaults.open_cash_drawer !== undefined ? Boolean(defaults.open_cash_drawer) : false),
             autoprint: Boolean(saved.autoprint),
         };
     }
@@ -810,6 +810,11 @@
                     $('#pos-success-change').text('$' + response.order.change_amount);
                     $('#pos-success-receipt-btn').attr('href', response.receipt_url + '?width=' + settings.paper_width);
                     $('#pos-success-view-btn').attr('href', response.show_url);
+                    $('#pos-success-thermal-btn').html(
+                        settings.driver === 'browser'
+                            ? '<i class="fa fa-print mr-1"></i> Print Receipt'
+                            : '<i class="fa fa-bolt mr-1"></i> Thermal Print'
+                    );
 
                     const $successPrintStatus = $('#pos-success-print-status');
                     $successPrintStatus.addClass('d-none').removeClass('alert-success alert-danger alert-info').text('');

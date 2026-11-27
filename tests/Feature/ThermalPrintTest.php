@@ -207,11 +207,15 @@ class ThermalPrintTest extends TestCase
             ->get(route('orders.receipt', ['order' => $orderId, 'width' => 80]))
             ->assertStatus(200)
             ->assertSee('Sales Receipt (80mm)')
-            ->assertSee('Thermal Print');
+            ->assertSee('Browser Print')
+            ->assertSee('btn-success d-none" id="receipt-thermal-print-btn"', false);
+
+        config()->set('pos.printer.driver', 'tcp');
 
         $this->actingAs($cashier)
             ->get(route('orders.receipt', ['order' => $orderId, 'width' => 58]))
             ->assertStatus(200)
-            ->assertSee('Sales Receipt (58mm)');
+            ->assertSee('Sales Receipt (58mm)')
+            ->assertDontSee('btn-success d-none" id="receipt-thermal-print-btn"', false);
     }
 }
