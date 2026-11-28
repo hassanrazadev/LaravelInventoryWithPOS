@@ -1,7 +1,7 @@
 # Laravel Inventory Management with POS (IMS-POS)
 
 [![CI](https://github.com/hassanrazadev/LaravelInventoryWithPOS/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/hassanrazadev/LaravelInventoryWithPOS/actions/workflows/ci.yml)
-[![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.4%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
 [![Code Style: Laravel Pint](https://img.shields.io/badge/Code%20Style-Laravel%20Pint-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/docs/pint)
 [![License: MIT](https://img.shields.io/badge/License-MIT-10b981.svg)](LICENSE)
@@ -87,10 +87,10 @@ By default, IMS-POS uses **Browser Print (`browser`)**, so production deployment
 
 ## Tech Stack
 
-- **Backend:** PHP 8.3+, Laravel 13 (slim directory structure), Spatie Laravel Permission 8
+- **Backend:** PHP 8.4+, Laravel 13 (slim directory structure), Spatie Laravel Permission 8
 - **Database:** MySQL 8+ (local/production) & SQLite (automated testing)
 - **Frontend:** Blade templates, Bootstrap 4, jQuery, DataTables, Select2, Cropper.js, Chart.js 2.7, Vite 7
-- **Quality & Testing:** PHPUnit 12 (`52` automated tests), Laravel Pint (`laravel` preset), GitHub Actions CI (`PHP 8.3` & `8.4`)
+- **Quality & Testing:** PHPUnit 12 (`52` automated tests), Laravel Pint (`laravel` preset), GitHub Actions CI (`PHP 8.4`)
 
 ---
 
@@ -98,7 +98,7 @@ By default, IMS-POS uses **Browser Print (`browser`)**, so production deployment
 
 ### Prerequisites
 
-- PHP `>= 8.3` with extensions: `gd`, `mbstring`, `pdo_mysql` (or `pdo_sqlite`), `xml`, `zip`
+- PHP `>= 8.4` with extensions: `gd`, `mbstring`, `pdo_mysql` (or `pdo_sqlite`), `xml`, `zip`
 - [Composer](https://getcomposer.org/) `>= 2.x`
 - MySQL `8.0+` (or SQLite for quick local evaluation)
 - Node.js & npm *(optional, only needed if customizing Vite assets)*

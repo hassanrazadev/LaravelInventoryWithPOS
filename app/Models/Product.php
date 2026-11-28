@@ -136,13 +136,13 @@ class Product extends Model
             $query->withTrashed();
         })
             ->with([
-            'category' => function ($query) {
-                $query->withTrashed();
-            },
-            'createdBy',
-            'updatedBy',
-            'purchases.supplier',
-        ])
+                'category' => function ($query) {
+                    $query->withTrashed();
+                },
+                'createdBy',
+                'updatedBy',
+                'purchases.supplier',
+            ])
             ->get()->map(function ($product) {
                 return $product->format();
             });
