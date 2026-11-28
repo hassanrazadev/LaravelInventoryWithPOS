@@ -28,7 +28,7 @@
         "source": "https://github.com/hassanrazadev/LaravelInventoryWithPOS"
     },
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "ext-gd": "*",
         "guzzlehttp/guzzle": "^7.8",
         "laravel/framework": "^13.0",

@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Only the latest `master` branch (Laravel 13 / PHP 8.3+) receives security fixes and updates.
+Only the latest `master` branch (Laravel 13 / PHP 8.4+) receives security fixes and updates.
 
 | Version | Supported |
 | --- | --- |
